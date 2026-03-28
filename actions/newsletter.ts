@@ -1,6 +1,6 @@
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
+import { prisma } from "@/lib/db/prisma";
 import { sendNewsletterConfirmation } from "@/lib/resend";
 import { newsletterSchema } from "@/lib/validations";
 import type { ActionResponse } from "@/types";
@@ -13,30 +13,27 @@ export async function subscribeToNewsletter(
     return { success: false, error: result.error.errors[0].message };
   }
 
-  const supabase = await createClient();
-
   // Check if already subscribed
-  const { data: existing } = await supabase
-    .from("newsletter_subscribers")
-    .select("id")
-    .eq("email", email)
-    .single();
+  const existing = await prisma.newsletterSubscriber.findUnique({
+    where: { email },
+  });
 
   if (existing) {
     return { success: false, error: "You're already subscribed!" };
   }
 
-  // Insert subscriber
-  const { error } = await supabase
-    .from("newsletter_subscribers")
-    .insert({ email });
+  try {
+    // Insert subscriber
+    await prisma.newsletterSubscriber.create({
+      data: { email },
+    });
 
-  if (error) {
+    // Send confirmation email
+    await sendNewsletterConfirmation(email);
+
+    return { success: true };
+  } catch (error) {
+    console.error("Newsletter subscription error:", error);
     return { success: false, error: "Failed to subscribe. Please try again." };
   }
-
-  // Send confirmation email
-  await sendNewsletterConfirmation(email);
-
-  return { success: true };
 }

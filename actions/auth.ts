@@ -1,13 +1,13 @@
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
+import { signIn, signOut } from "@/lib/auth/config";
+import { prisma } from "@/lib/db/prisma";
 import { redirect } from "next/navigation";
 import { loginSchema, signupSchema } from "@/lib/validations";
+import bcrypt from "bcryptjs";
 import type { ActionResponse } from "@/types";
 
 export async function login(formData: FormData): Promise<ActionResponse> {
-  const supabase = await createClient();
-
   const data = {
     email: formData.get("email") as string,
     password: formData.get("password") as string,
@@ -18,19 +18,26 @@ export async function login(formData: FormData): Promise<ActionResponse> {
     return { success: false, error: result.error.errors[0].message };
   }
 
-  const { error } = await supabase.auth.signInWithPassword(data);
+  try {
+    const redirectTo = (formData.get("redirect") as string) || "/dashboard";
+    
+    await signIn("credentials", {
+      email: data.email,
+      password: data.password,
+      redirect: false,
+    });
 
-  if (error) {
-    return { success: false, error: error.message };
+    redirect(redirectTo);
+  } catch (error) {
+    // Check if it's a redirect (which is expected)
+    if (error instanceof Error && error.message === "NEXT_REDIRECT") {
+      throw error;
+    }
+    return { success: false, error: "Invalid email or password" };
   }
-
-  const redirectTo = formData.get("redirect") as string;
-  redirect(redirectTo || "/dashboard");
 }
 
 export async function signup(formData: FormData): Promise<ActionResponse> {
-  const supabase = await createClient();
-
   const data = {
     name: formData.get("name") as string,
     email: formData.get("email") as string,
@@ -43,42 +50,47 @@ export async function signup(formData: FormData): Promise<ActionResponse> {
     return { success: false, error: result.error.errors[0].message };
   }
 
-  const { error } = await supabase.auth.signUp({
-    email: data.email,
-    password: data.password,
-    options: {
-      data: {
-        name: data.name,
-      },
-    },
+  // Check if user already exists
+  const existingUser = await prisma.user.findUnique({
+    where: { email: data.email },
   });
 
-  if (error) {
-    return { success: false, error: error.message };
+  if (existingUser) {
+    return { success: false, error: "An account with this email already exists" };
   }
 
-  redirect("/dashboard");
+  // Hash password
+  const hashedPassword = await bcrypt.hash(data.password, 12);
+
+  // Create user
+  try {
+    await prisma.user.create({
+      data: {
+        email: data.email,
+        name: data.name,
+        password: hashedPassword,
+      },
+    });
+
+    // Sign in the user
+    await signIn("credentials", {
+      email: data.email,
+      password: data.password,
+      redirect: false,
+    });
+
+    redirect("/dashboard");
+  } catch (error) {
+    // Check if it's a redirect
+    if (error instanceof Error && error.message === "NEXT_REDIRECT") {
+      throw error;
+    }
+    console.error("Signup error:", error);
+    return { success: false, error: "Failed to create account. Please try again." };
+  }
 }
 
 export async function logout(): Promise<void> {
-  const supabase = await createClient();
-  await supabase.auth.signOut();
+  await signOut({ redirect: false });
   redirect("/");
-}
-
-export async function getCurrentUser() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) return null;
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("id", user.id)
-    .single();
-
-  return profile;
 }

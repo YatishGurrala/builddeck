@@ -1,7 +1,10 @@
-import { notFound } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { notFound, redirect } from "next/navigation";
 import { ProductForm } from "@/components/forms/product-form";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { getCurrentUser } from "@/lib/auth/utils";
+import { getProductById } from "@/lib/db/queries/products";
+import { getAllCategories } from "@/lib/db/queries/categories";
+import type { Product } from "@/types";
 
 interface EditProductPageProps {
   params: Promise<{ id: string }>;
@@ -9,27 +12,19 @@ interface EditProductPageProps {
 
 export default async function EditProductPage({ params }: EditProductPageProps) {
   const { id } = await params;
-  const supabase = await createClient();
+  
+  const user = await getCurrentUser();
+  if (!user) {
+    redirect("/auth/login");
+  }
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const product = await getProductById(id);
 
-  const { data: product } = await supabase
-    .from("products")
-    .select("*")
-    .eq("id", id)
-    .eq("user_id", user!.id)
-    .single();
-
-  if (!product) {
+  if (!product || product.userId !== user.id) {
     notFound();
   }
 
-  const { data: categories } = await supabase
-    .from("categories")
-    .select("*")
-    .order("name");
+  const categories = await getAllCategories();
 
   return (
     <div className="container mx-auto px-4 py-12">
@@ -43,7 +38,7 @@ export default async function EditProductPage({ params }: EditProductPageProps) 
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <ProductForm categories={categories || []} product={product} />
+            <ProductForm categories={categories || []} product={product as unknown as Product} />
           </CardContent>
         </Card>
       </div>

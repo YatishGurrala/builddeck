@@ -1,29 +1,11 @@
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/server";
+import { getCategoriesWithProductCount } from "@/lib/db/queries/categories";
 import { Card, CardContent } from "@/components/ui/card";
 import { ArrowRight } from "lucide-react";
 
 export default async function CategoriesPage() {
-  const supabase = await createClient();
-
   // Fetch categories with product counts
-  const { data: categories } = await supabase
-    .from("categories")
-    .select("*")
-    .order("name");
-
-  // Get product counts for each category
-  const categoriesWithCounts = await Promise.all(
-    (categories || []).map(async (category) => {
-      const { count } = await supabase
-        .from("products")
-        .select("*", { count: "exact", head: true })
-        .eq("category_id", category.id)
-        .eq("status", "approved");
-
-      return { ...category, productCount: count || 0 };
-    })
-  );
+  const categoriesWithCounts = await getCategoriesWithProductCount();
 
   return (
     <div className="container mx-auto px-4 py-12">
@@ -35,7 +17,7 @@ export default async function CategoriesPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {categoriesWithCounts.map((category) => (
+        {categoriesWithCounts.map((category: { id: string; slug: string; name: string; productCount: number }) => (
           <Link key={category.id} href={`/products?category=${category.slug}`}>
             <Card className="group h-full hover:border-zinc-700 transition-all hover:shadow-lg hover:shadow-violet-500/5">
               <CardContent className="p-6">

@@ -1,27 +1,28 @@
 // =====================================================
-// Database Enums
+// Database Enums (uppercase to match Prisma)
 // =====================================================
-export type UserRole = "user" | "admin";
-export type ProductStatus = "pending" | "approved" | "rejected";
-export type SubmissionAction = "submitted" | "approved" | "rejected" | "resubmitted" | "featured" | "unfeatured";
+export type UserRole = "USER" | "ADMIN";
+export type ProductStatus = "PENDING" | "APPROVED" | "REJECTED";
+export type SubmissionAction = "SUBMITTED" | "APPROVED" | "REJECTED" | "RESUBMITTED" | "FEATURED" | "UNFEATURED";
 
 // =====================================================
-// Database Tables
+// Database Tables (camelCase to match Prisma)
 // =====================================================
 
-export interface Profile {
+export interface User {
   id: string;
   email: string;
   name: string | null;
   username: string | null;
-  avatar_url: string | null;
+  password?: string;
+  role: UserRole;
+  avatarUrl: string | null;
   bio: string | null;
   website: string | null;
-  twitter_handle: string | null;
-  role: UserRole;
-  email_verified: boolean;
-  created_at: string;
-  updated_at: string;
+  twitter: string | null;
+  emailVerified: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface Category {
@@ -31,11 +32,10 @@ export interface Category {
   description: string | null;
   icon: string | null;
   color: string | null;
-  display_order: number;
-  is_active: boolean;
-  product_count: number;
-  created_at: string;
-  updated_at: string;
+  displayOrder: number;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface Product {
@@ -44,47 +44,55 @@ export interface Product {
   slug: string;
   tagline: string;
   description: string | null;
-  website_url: string;
-  logo_url: string | null;
-  screenshots: string[];
-  
-  // Relationships
-  category_id: string | null;
-  user_id: string;
+  websiteUrl: string;
+  logoUrl: string | null;
+  screenshots: string;
   
   // Status & Features
   status: ProductStatus;
   featured: boolean;
-  featured_at: string | null;
+  featuredAt: Date | null;
   
   // Metrics
-  view_count: number;
-  upvote_count: number;
+  viewCount: number;
+  upvoteCount: number;
   
   // Moderation
-  rejection_reason: string | null;
-  reviewed_by: string | null;
-  reviewed_at: string | null;
+  rejectionReason: string | null;
+  reviewedAt: Date | null;
+  
+  // Relations
+  userId: string;
+  categoryId: string | null;
+  reviewedById: string | null;
   
   // Timestamps
-  submitted_at: string | null;
-  approved_at: string | null;
-  created_at: string;
-  updated_at: string;
+  submittedAt: Date;
+  approvedAt: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+  
+  // Joined relations (optional)
+  user?: User;
+  category?: Category | null;
+  reviewedBy?: User | null;
 }
 
 export interface Submission {
   id: string;
-  product_id: string;
-  user_id: string;
-  action: SubmissionAction;
-  previous_status: ProductStatus | null;
-  new_status: ProductStatus | null;
+  action: string;
+  previousStatus: string | null;
+  newStatus: string | null;
   notes: string | null;
-  performed_by: string | null;
-  ip_address: string | null;
-  user_agent: string | null;
-  created_at: string;
+  productId: string;
+  userId: string;
+  performedById: string | null;
+  createdAt: Date;
+  
+  // Joined relations
+  product?: Product;
+  user?: User;
+  performedBy?: User | null;
 }
 
 export interface NewsletterSubscriber {
@@ -92,29 +100,24 @@ export interface NewsletterSubscriber {
   email: string;
   name: string | null;
   confirmed: boolean;
-  confirmation_token: string | null;
-  confirmed_at: string | null;
+  confirmationToken: string | null;
+  confirmedAt: Date | null;
   unsubscribed: boolean;
-  unsubscribed_at: string | null;
+  unsubscribedAt: Date | null;
   source: string;
-  created_at: string;
-  updated_at: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 // =====================================================
 // Joined/Extended Types
 // =====================================================
 
-export interface ProductWithRelations extends Product {
-  category?: Category | null;
-  profile?: Profile | null;
-}
+// ProductWithRelations is same as Product since relations are already defined
+export type ProductWithRelations = Product;
 
-export interface SubmissionWithRelations extends Submission {
-  product?: Product | null;
-  user?: Profile | null;
-  performer?: Profile | null;
-}
+// SubmissionWithRelations is same as Submission since relations are already defined
+export type SubmissionWithRelations = Submission;
 
 // =====================================================
 // Form Data Types
@@ -203,76 +206,4 @@ export interface ModerateProductInput {
   productId: string;
   action: "approve" | "reject" | "feature" | "unfeature";
   rejectionReason?: string;
-}
-
-// =====================================================
-// Supabase Database Types (for type-safe queries)
-// =====================================================
-
-export interface Database {
-  public: {
-    Tables: {
-      profiles: {
-        Row: Profile;
-        Insert: Omit<Profile, "created_at" | "updated_at"> & {
-          created_at?: string;
-          updated_at?: string;
-        };
-        Update: Partial<Omit<Profile, "id">>;
-      };
-      categories: {
-        Row: Category;
-        Insert: Omit<Category, "id" | "created_at" | "updated_at" | "product_count"> & {
-          id?: string;
-          created_at?: string;
-          updated_at?: string;
-          product_count?: number;
-        };
-        Update: Partial<Omit<Category, "id">>;
-      };
-      products: {
-        Row: Product;
-        Insert: Omit<Product, "id" | "created_at" | "updated_at" | "view_count" | "upvote_count"> & {
-          id?: string;
-          created_at?: string;
-          updated_at?: string;
-          view_count?: number;
-          upvote_count?: number;
-        };
-        Update: Partial<Omit<Product, "id">>;
-      };
-      submissions: {
-        Row: Submission;
-        Insert: Omit<Submission, "id" | "created_at"> & {
-          id?: string;
-          created_at?: string;
-        };
-        Update: Partial<Omit<Submission, "id">>;
-      };
-      newsletter_subscribers: {
-        Row: NewsletterSubscriber;
-        Insert: Omit<NewsletterSubscriber, "id" | "created_at" | "updated_at"> & {
-          id?: string;
-          created_at?: string;
-          updated_at?: string;
-        };
-        Update: Partial<Omit<NewsletterSubscriber, "id">>;
-      };
-    };
-    Enums: {
-      user_role: UserRole;
-      product_status: ProductStatus;
-      submission_action: SubmissionAction;
-    };
-    Functions: {
-      is_admin: {
-        Args: { user_id: string };
-        Returns: boolean;
-      };
-      generate_unique_slug: {
-        Args: { base_name: string; table_name: string };
-        Returns: string;
-      };
-    };
-  };
 }

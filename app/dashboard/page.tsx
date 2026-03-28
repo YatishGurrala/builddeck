@@ -1,12 +1,14 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Plus, Edit, Trash2, ExternalLink, CheckCircle } from "lucide-react";
-import { createClient } from "@/lib/supabase/server";
+import { redirect } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatDate } from "@/lib/utils";
 import { DeleteProductButton } from "./delete-button";
+import { getCurrentUser } from "@/lib/auth/utils";
+import { getProductsByUser } from "@/lib/db/queries/products";
 
 interface DashboardPageProps {
   searchParams: Promise<{ submitted?: string }>;
@@ -14,28 +16,18 @@ interface DashboardPageProps {
 
 export default async function DashboardPage({ searchParams }: DashboardPageProps) {
   const params = await searchParams;
-  const supabase = await createClient();
+  
+  const user = await getCurrentUser();
+  if (!user) {
+    redirect("/auth/login");
+  }
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  const { data: products } = await supabase
-    .from("products")
-    .select("*, category:categories(*)")
-    .eq("user_id", user!.id)
-    .order("created_at", { ascending: false });
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("id", user!.id)
-    .single();
+  const products = await getProductsByUser(user.id);
 
   const statusColors = {
-    pending: "warning",
-    approved: "success",
-    rejected: "destructive",
+    PENDING: "warning",
+    APPROVED: "success",
+    REJECTED: "destructive",
   } as const;
 
   return (
@@ -53,7 +45,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
         <div>
           <h1 className="text-3xl font-bold text-white">Dashboard</h1>
           <p className="text-zinc-400 mt-1">
-            Welcome back, {profile?.name || user?.email}
+            Welcome back, {user?.name || user?.email}
           </p>
         </div>
         <Link href="/submit">
@@ -83,7 +75,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
           </CardHeader>
           <CardContent>
             <p className="text-3xl font-bold text-green-400">
-              {products?.filter((p) => p.status === "approved").length || 0}
+              {products?.filter((p) => p.status === "APPROVED").length || 0}
             </p>
           </CardContent>
         </Card>
@@ -95,7 +87,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
           </CardHeader>
           <CardContent>
             <p className="text-3xl font-bold text-yellow-400">
-              {products?.filter((p) => p.status === "pending").length || 0}
+              {products?.filter((p) => p.status === "PENDING").length || 0}
             </p>
           </CardContent>
         </Card>
@@ -126,9 +118,9 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
                   className="flex items-center gap-4 p-4 rounded-lg border border-zinc-800 bg-zinc-900/50"
                 >
                   <div className="relative h-14 w-14 flex-shrink-0 overflow-hidden rounded-xl bg-zinc-800">
-                    {product.logo_url ? (
+                    {product.logoUrl ? (
                       <Image
-                        src={product.logo_url}
+                        src={product.logoUrl}
                         alt={product.name}
                         fill
                         className="object-cover"
@@ -145,20 +137,20 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
                       <h3 className="font-medium text-white truncate">
                         {product.name}
                       </h3>
-                      <Badge variant={statusColors[product.status]}>
-                        {product.status}
+                      <Badge variant={statusColors[product.status as keyof typeof statusColors]}>
+                        {product.status.toLowerCase()}
                       </Badge>
                     </div>
                     <p className="text-sm text-zinc-400 truncate mt-1">
                       {product.tagline}
                     </p>
                     <p className="text-xs text-zinc-500 mt-1">
-                      Submitted {formatDate(product.created_at)}
+                      Submitted {formatDate(product.createdAt)}
                     </p>
                   </div>
 
                   <div className="flex items-center gap-2">
-                    {product.status === "approved" && (
+                    {product.status === "APPROVED" && (
                       <Link href={`/products/${product.slug}`}>
                         <Button variant="ghost" size="icon">
                           <ExternalLink className="h-4 w-4" />

@@ -16,14 +16,14 @@ export function AdminActions({ product }: AdminActionsProps) {
 
   async function handleApprove() {
     setIsLoading("approve");
-    await updateProductStatus(product.id, "approved");
+    await updateProductStatus(product.id, "APPROVED");
     setIsLoading(null);
     setShowMenu(false);
   }
 
   async function handleReject() {
     setIsLoading("reject");
-    await updateProductStatus(product.id, "rejected");
+    await updateProductStatus(product.id, "REJECTED");
     setIsLoading(null);
     setShowMenu(false);
   }
@@ -38,7 +38,7 @@ export function AdminActions({ product }: AdminActionsProps) {
   return (
     <div className="flex items-center gap-1">
       {/* Quick actions for pending */}
-      {product.status === "pending" && (
+      {product.status === "PENDING" && (
         <>
           <button
             onClick={handleApprove}
@@ -68,7 +68,7 @@ export function AdminActions({ product }: AdminActionsProps) {
       )}
 
       {/* Feature toggle for approved */}
-      {product.status === "approved" && (
+      {product.status === "APPROVED" && (
         <button
           onClick={handleToggleFeatured}
           disabled={isLoading === "feature"}
@@ -88,7 +88,7 @@ export function AdminActions({ product }: AdminActionsProps) {
       )}
 
       {/* Re-approve for rejected */}
-      {product.status === "rejected" && (
+      {product.status === "REJECTED" && (
         <button
           onClick={handleApprove}
           disabled={isLoading === "approve"}

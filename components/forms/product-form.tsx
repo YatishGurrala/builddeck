@@ -21,10 +21,10 @@ export function ProductForm({ categories, product }: ProductFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(
-    product?.logo_url || null
+    product?.logoUrl || null
   );
   const [screenshotPreviews, setScreenshotPreviews] = useState<string[]>(
-    product?.screenshots || []
+    product?.screenshots ? JSON.parse(product.screenshots) : []
   );
 
   async function handleSubmit(formData: FormData) {
@@ -114,7 +114,7 @@ export function ProductForm({ categories, product }: ProductFormProps) {
           name="website_url"
           type="url"
           placeholder="https://yourproduct.com"
-          defaultValue={product?.website_url}
+          defaultValue={product?.websiteUrl}
           required
         />
       </div>
@@ -124,7 +124,7 @@ export function ProductForm({ categories, product }: ProductFormProps) {
         <Select
           id="category_id"
           name="category_id"
-          defaultValue={product?.category_id || ""}
+          defaultValue={product?.categoryId || ""}
           required
         >
           <option value="">Select a category</option>

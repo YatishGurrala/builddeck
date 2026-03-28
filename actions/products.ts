@@ -1,20 +1,19 @@
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
+import { prisma } from "@/lib/db/prisma";
+import { auth } from "@/lib/auth/config";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { productSchema } from "@/lib/validations";
 import { slugify } from "@/lib/utils";
-import type { ActionResponse, Product, ProductStatus } from "@/types";
+import type { ActionResponse } from "@/types";
 
-export async function createProduct(formData: FormData): Promise<ActionResponse<Product>> {
-  const supabase = await createClient();
+type ProductStatus = "PENDING" | "APPROVED" | "REJECTED";
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+export async function createProduct(formData: FormData): Promise<ActionResponse> {
+  const session = await auth();
 
-  if (!user) {
+  if (!session?.user?.id) {
     return { success: false, error: "You must be logged in" };
   }
 
@@ -33,104 +32,66 @@ export async function createProduct(formData: FormData): Promise<ActionResponse<
 
   // Generate unique slug
   let slug = slugify(data.name);
-  const { data: existingProduct } = await supabase
-    .from("products")
-    .select("slug")
-    .eq("slug", slug)
-    .single();
+  const existingProduct = await prisma.product.findUnique({
+    where: { slug },
+  });
 
   if (existingProduct) {
     slug = `${slug}-${Date.now()}`;
   }
 
-  // Handle logo upload
-  let logoUrl: string | null = null;
-  const logo = formData.get("logo") as File;
-  if (logo && logo.size > 0) {
-    const fileExt = logo.name.split(".").pop();
-    const filePath = `${user.id}/${slug}/logo.${fileExt}`;
+  // For now, we'll skip file uploads (can add Cloudinary or local storage later)
+  // Handle logo URL from form if provided directly
+  const logoUrl = formData.get("logo_url") as string | null;
 
-    const { error: uploadError } = await supabase.storage
-      .from("products")
-      .upload(filePath, logo);
+  try {
+    await prisma.product.create({
+      data: {
+        name: data.name,
+        slug,
+        tagline: data.tagline,
+        description: data.description,
+        websiteUrl: data.website_url,
+        categoryId: data.category_id || null,
+        logoUrl: logoUrl || null,
+        screenshots: "[]",
+        userId: session.user.id,
+        status: "PENDING",
+      },
+    });
 
-    if (!uploadError) {
-      const {
-        data: { publicUrl },
-      } = supabase.storage.from("products").getPublicUrl(filePath);
-      logoUrl = publicUrl;
+    // Log submission
+    // Note: We'll let the product creation handle this for now
+
+    revalidatePath("/dashboard");
+    redirect("/dashboard?submitted=true");
+  } catch (error) {
+    // Check if it's a redirect
+    if (error instanceof Error && error.message === "NEXT_REDIRECT") {
+      throw error;
     }
+    console.error("Create product error:", error);
+    return { success: false, error: "Failed to create product" };
   }
-
-  // Handle screenshots upload
-  const screenshots: string[] = [];
-  const screenshotFiles = formData.getAll("screenshots") as File[];
-  for (let i = 0; i < screenshotFiles.length; i++) {
-    const file = screenshotFiles[i];
-    if (file && file.size > 0) {
-      const fileExt = file.name.split(".").pop();
-      const filePath = `${user.id}/${slug}/screenshot-${i}.${fileExt}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from("products")
-        .upload(filePath, file);
-
-      if (!uploadError) {
-        const {
-          data: { publicUrl },
-        } = supabase.storage.from("products").getPublicUrl(filePath);
-        screenshots.push(publicUrl);
-      }
-    }
-  }
-
-  // Insert product
-  const { data: product, error } = await supabase
-    .from("products")
-    .insert({
-      name: data.name,
-      slug,
-      tagline: data.tagline,
-      description: data.description,
-      website_url: data.website_url,
-      category_id: data.category_id,
-      logo_url: logoUrl,
-      screenshots,
-      user_id: user.id,
-      status: "pending",
-    })
-    .select()
-    .single();
-
-  if (error) {
-    return { success: false, error: error.message };
-  }
-
-  revalidatePath("/dashboard");
-  redirect("/dashboard?submitted=true");
 }
 
 export async function updateProduct(
   productId: string,
   formData: FormData
 ): Promise<ActionResponse> {
-  const supabase = await createClient();
+  const session = await auth();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
+  if (!session?.user?.id) {
     return { success: false, error: "You must be logged in" };
   }
 
   // Verify ownership
-  const { data: existingProduct } = await supabase
-    .from("products")
-    .select("*")
-    .eq("id", productId)
-    .eq("user_id", user.id)
-    .single();
+  const existingProduct = await prisma.product.findFirst({
+    where: {
+      id: productId,
+      userId: session.user.id,
+    },
+  });
 
   if (!existingProduct) {
     return { success: false, error: "Product not found" };
@@ -149,92 +110,48 @@ export async function updateProduct(
     return { success: false, error: result.error.errors[0].message };
   }
 
-  // Handle logo upload if new one provided
-  let logoUrl = existingProduct.logo_url;
-  const logo = formData.get("logo") as File;
-  if (logo && logo.size > 0) {
-    const fileExt = logo.name.split(".").pop();
-    const filePath = `${user.id}/${existingProduct.slug}/logo.${fileExt}`;
+  try {
+    await prisma.product.update({
+      where: { id: productId },
+      data: {
+        name: data.name,
+        tagline: data.tagline,
+        description: data.description,
+        websiteUrl: data.website_url,
+        categoryId: data.category_id || null,
+        status: "PENDING", // Reset to pending on edit
+      },
+    });
 
-    const { error: uploadError } = await supabase.storage
-      .from("products")
-      .upload(filePath, logo, { upsert: true });
-
-    if (!uploadError) {
-      const {
-        data: { publicUrl },
-      } = supabase.storage.from("products").getPublicUrl(filePath);
-      logoUrl = publicUrl;
-    }
+    revalidatePath("/dashboard");
+    return { success: true };
+  } catch (error) {
+    console.error("Update product error:", error);
+    return { success: false, error: "Failed to update product" };
   }
-
-  // Handle new screenshots
-  let screenshots = existingProduct.screenshots || [];
-  const screenshotFiles = formData.getAll("screenshots") as File[];
-  for (let i = 0; i < screenshotFiles.length; i++) {
-    const file = screenshotFiles[i];
-    if (file && file.size > 0) {
-      const fileExt = file.name.split(".").pop();
-      const filePath = `${user.id}/${existingProduct.slug}/screenshot-${Date.now()}-${i}.${fileExt}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from("products")
-        .upload(filePath, file);
-
-      if (!uploadError) {
-        const {
-          data: { publicUrl },
-        } = supabase.storage.from("products").getPublicUrl(filePath);
-        screenshots.push(publicUrl);
-      }
-    }
-  }
-
-  const { error } = await supabase
-    .from("products")
-    .update({
-      name: data.name,
-      tagline: data.tagline,
-      description: data.description,
-      website_url: data.website_url,
-      category_id: data.category_id,
-      logo_url: logoUrl,
-      screenshots,
-      status: "pending", // Reset to pending on edit
-    })
-    .eq("id", productId);
-
-  if (error) {
-    return { success: false, error: error.message };
-  }
-
-  revalidatePath("/dashboard");
-  return { success: true };
 }
 
 export async function deleteProduct(productId: string): Promise<ActionResponse> {
-  const supabase = await createClient();
+  const session = await auth();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
+  if (!session?.user?.id) {
     return { success: false, error: "You must be logged in" };
   }
 
-  const { error } = await supabase
-    .from("products")
-    .delete()
-    .eq("id", productId)
-    .eq("user_id", user.id);
+  try {
+    await prisma.product.delete({
+      where: {
+        id: productId,
+        userId: session.user.id,
+      },
+    });
 
-  if (error) {
-    return { success: false, error: error.message };
+    revalidatePath("/dashboard");
+    return { success: true };
+  } catch (error) {
+    console.error("Delete product error:", error);
+    return { success: false, error: "Failed to delete product" };
   }
-
-  revalidatePath("/dashboard");
-  return { success: true };
 }
 
 // Admin actions
@@ -242,85 +159,74 @@ export async function updateProductStatus(
   productId: string,
   status: ProductStatus
 ): Promise<ActionResponse> {
-  const supabase = await createClient();
+  const session = await auth();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
+  if (!session?.user?.id) {
     return { success: false, error: "You must be logged in" };
   }
 
   // Verify admin role
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .single();
-
-  if (profile?.role !== "admin") {
+  if (session.user.role !== "ADMIN") {
     return { success: false, error: "Not authorized" };
   }
 
-  const { error } = await supabase
-    .from("products")
-    .update({ status })
-    .eq("id", productId);
+  try {
+    await prisma.product.update({
+      where: { id: productId },
+      data: {
+        status,
+        reviewedById: session.user.id,
+        reviewedAt: new Date(),
+        ...(status === "APPROVED" && { approvedAt: new Date() }),
+      },
+    });
 
-  if (error) {
-    return { success: false, error: error.message };
+    revalidatePath("/admin");
+    revalidatePath("/products");
+    return { success: true };
+  } catch (error) {
+    console.error("Update status error:", error);
+    return { success: false, error: "Failed to update status" };
   }
-
-  revalidatePath("/admin");
-  revalidatePath("/products");
-  return { success: true };
 }
 
 export async function toggleFeatured(productId: string): Promise<ActionResponse> {
-  const supabase = await createClient();
+  const session = await auth();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
+  if (!session?.user?.id) {
     return { success: false, error: "You must be logged in" };
   }
 
   // Verify admin role
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .single();
-
-  if (profile?.role !== "admin") {
+  if (session.user.role !== "ADMIN") {
     return { success: false, error: "Not authorized" };
   }
 
   // Get current featured status
-  const { data: product } = await supabase
-    .from("products")
-    .select("featured")
-    .eq("id", productId)
-    .single();
+  const product = await prisma.product.findUnique({
+    where: { id: productId },
+    select: { featured: true },
+  });
 
   if (!product) {
     return { success: false, error: "Product not found" };
   }
 
-  const { error } = await supabase
-    .from("products")
-    .update({ featured: !product.featured })
-    .eq("id", productId);
+  try {
+    await prisma.product.update({
+      where: { id: productId },
+      data: {
+        featured: !product.featured,
+        featuredAt: !product.featured ? new Date() : null,
+      },
+    });
 
-  if (error) {
-    return { success: false, error: error.message };
+    revalidatePath("/admin");
+    revalidatePath("/products");
+    revalidatePath("/");
+    return { success: true };
+  } catch (error) {
+    console.error("Toggle featured error:", error);
+    return { success: false, error: "Failed to toggle featured" };
   }
-
-  revalidatePath("/admin");
-  revalidatePath("/products");
-  revalidatePath("/");
-  return { success: true };
 }

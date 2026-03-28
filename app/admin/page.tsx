@@ -9,13 +9,14 @@ import {
   ExternalLink,
   LayoutGrid,
 } from "lucide-react";
-import { createClient } from "@/lib/supabase/server";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatDate } from "@/lib/utils";
 import { AdminActions } from "./admin-actions";
-import type { Product } from "@/types";
+import { requireAdmin } from "@/lib/auth/utils";
+import { prisma } from "@/lib/db/prisma";
+import type { Product, ProductStatus } from "@/types";
 
 interface AdminPageProps {
   searchParams: Promise<{ status?: string }>;
@@ -23,54 +24,43 @@ interface AdminPageProps {
 
 export default async function AdminPage({ searchParams }: AdminPageProps) {
   const params = await searchParams;
-  const supabase = await createClient();
 
-  // Verify admin access (double check - middleware should handle this)
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // Verify admin access
+  await requireAdmin();
 
-  if (!user) {
-    redirect("/login");
-  }
+  // Build filter condition
+  const statusFilter = params.status?.toUpperCase() as ProductStatus | undefined;
+  const validStatuses: ProductStatus[] = ["PENDING", "APPROVED", "REJECTED"];
+  
+  const whereClause = statusFilter && validStatuses.includes(statusFilter)
+    ? { status: statusFilter }
+    : {};
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .single();
-
-  if (profile?.role !== "admin") {
-    redirect("/dashboard");
-  }
-
-  // Fetch all products (admin can see all)
-  let query = supabase
-    .from("products")
-    .select("*, category:categories(*), profile:profiles(*)")
-    .order("created_at", { ascending: false });
-
-  // Filter by status if specified
-  if (params.status && ["pending", "approved", "rejected"].includes(params.status)) {
-    query = query.eq("status", params.status);
-  }
-
-  const { data: products } = await query;
+  // Fetch filtered products
+  const products = await prisma.product.findMany({
+    where: whereClause,
+    include: {
+      category: true,
+      user: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          avatarUrl: true,
+        },
+      },
+    },
+    orderBy: { createdAt: "desc" },
+  });
 
   // Fetch stats for all products
-  const { data: allProducts } = await supabase
-    .from("products")
-    .select("status");
-
-  const pendingCount = allProducts?.filter((p) => p.status === "pending").length || 0;
-  const approvedCount = allProducts?.filter((p) => p.status === "approved").length || 0;
-  const rejectedCount = allProducts?.filter((p) => p.status === "rejected").length || 0;
-  const totalCount = allProducts?.length || 0;
-
-  // Fetch newsletter subscribers count
-  const { count: subscriberCount } = await supabase
-    .from("newsletter_subscribers")
-    .select("*", { count: "exact", head: true });
+  const [pendingCount, approvedCount, rejectedCount, totalCount, subscriberCount] = await Promise.all([
+    prisma.product.count({ where: { status: "PENDING" } }),
+    prisma.product.count({ where: { status: "APPROVED" } }),
+    prisma.product.count({ where: { status: "REJECTED" } }),
+    prisma.product.count(),
+    prisma.newsletterSubscriber.count(),
+  ]);
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -206,7 +196,7 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
                 </thead>
                 <tbody className="divide-y divide-zinc-800">
                   {products.map((product) => (
-                    <ProductTableRow key={product.id} product={product} />
+                    <ProductTableRow key={product.id} product={product as Product & { category?: { name: string } | null; user?: { name: string | null; email: string } | null }} />
                   ))}
                 </tbody>
               </table>
@@ -218,11 +208,11 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
   );
 }
 
-function ProductTableRow({ product }: { product: Product }) {
+function ProductTableRow({ product }: { product: Product & { category?: { name: string } | null; user?: { name: string | null; email: string } | null } }) {
   const statusConfig = {
-    pending: { color: "warning", label: "Pending" },
-    approved: { color: "success", label: "Approved" },
-    rejected: { color: "destructive", label: "Rejected" },
+    PENDING: { color: "warning", label: "Pending" },
+    APPROVED: { color: "success", label: "Approved" },
+    REJECTED: { color: "destructive", label: "Rejected" },
   } as const;
 
   const status = statusConfig[product.status];
@@ -233,9 +223,9 @@ function ProductTableRow({ product }: { product: Product }) {
       <td className="px-6 py-4">
         <div className="flex items-center gap-3">
           <div className="relative h-10 w-10 flex-shrink-0 overflow-hidden rounded-lg bg-zinc-800">
-            {product.logo_url ? (
+            {product.logoUrl ? (
               <Image
-                src={product.logo_url}
+                src={product.logoUrl}
                 alt={product.name}
                 fill
                 className="object-cover"
@@ -275,10 +265,10 @@ function ProductTableRow({ product }: { product: Product }) {
       <td className="px-6 py-4 hidden lg:table-cell">
         <div className="text-sm">
           <p className="text-zinc-300">
-            {product.profile?.name || "Unknown"}
+            {product.user?.name || "Unknown"}
           </p>
           <p className="text-zinc-500 text-xs truncate max-w-[150px]">
-            {product.profile?.email}
+            {product.user?.email}
           </p>
         </div>
       </td>
@@ -286,7 +276,7 @@ function ProductTableRow({ product }: { product: Product }) {
       {/* Date */}
       <td className="px-6 py-4 hidden sm:table-cell">
         <p className="text-sm text-zinc-400">
-          {formatDate(product.created_at)}
+          {formatDate(product.createdAt)}
         </p>
       </td>
 
@@ -299,7 +289,7 @@ function ProductTableRow({ product }: { product: Product }) {
       <td className="px-6 py-4">
         <div className="flex items-center justify-end gap-1">
           <a
-            href={product.website_url}
+            href={product.websiteUrl}
             target="_blank"
             rel="noopener noreferrer"
             className="p-2 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"

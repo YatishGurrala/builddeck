@@ -22,16 +22,16 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { NewsletterForm } from "@/components/forms/newsletter-form";
-import { createClient } from "@/lib/supabase/server";
+import { getFeaturedProducts } from "@/lib/db/queries/products";
 
-// Mock featured products data
+// Mock featured products data (fallback)
 const mockFeaturedProducts = [
   {
     id: "1",
     name: "Raycast",
     slug: "raycast",
     tagline: "Supercharged productivity tool for Mac power users",
-    logo_url: null,
+    logoUrl: null,
     featured: true,
     category: { name: "Productivity", slug: "productivity" },
   },
@@ -40,7 +40,7 @@ const mockFeaturedProducts = [
     name: "Linear",
     slug: "linear",
     tagline: "The issue tracking tool you'll enjoy using",
-    logo_url: null,
+    logoUrl: null,
     featured: true,
     category: { name: "Developer Tools", slug: "developer-tools" },
   },
@@ -49,7 +49,7 @@ const mockFeaturedProducts = [
     name: "Framer",
     slug: "framer",
     tagline: "Design and publish stunning websites in minutes",
-    logo_url: null,
+    logoUrl: null,
     featured: true,
     category: { name: "Design", slug: "design" },
   },
@@ -58,7 +58,7 @@ const mockFeaturedProducts = [
     name: "Notion AI",
     slug: "notion-ai",
     tagline: "AI-powered workspace for notes, docs, and projects",
-    logo_url: null,
+    logoUrl: null,
     featured: true,
     category: { name: "AI & Machine Learning", slug: "ai-machine-learning" },
   },
@@ -67,7 +67,7 @@ const mockFeaturedProducts = [
     name: "Vercel",
     slug: "vercel",
     tagline: "Build and deploy web applications with zero configuration",
-    logo_url: null,
+    logoUrl: null,
     featured: true,
     category: { name: "Developer Tools", slug: "developer-tools" },
   },
@@ -76,7 +76,7 @@ const mockFeaturedProducts = [
     name: "Figma",
     slug: "figma",
     tagline: "Collaborative interface design tool for teams",
-    logo_url: null,
+    logoUrl: null,
     featured: true,
     category: { name: "Design", slug: "design" },
   },
@@ -95,16 +95,8 @@ const categories = [
 ];
 
 export default async function HomePage() {
-  const supabase = await createClient();
-
   // Fetch featured products from DB (falls back to mock data)
-  const { data: dbFeaturedProducts } = await supabase
-    .from("products")
-    .select("*, category:categories(*)")
-    .eq("status", "approved")
-    .eq("featured", true)
-    .order("created_at", { ascending: false })
-    .limit(6);
+  const dbFeaturedProducts = await getFeaturedProducts(6);
 
   const featuredProducts =
     dbFeaturedProducts && dbFeaturedProducts.length > 0
@@ -205,16 +197,16 @@ export default async function HomePage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {featuredProducts.map((product, index) => (
+            {featuredProducts.map((product: { id: string; slug: string; logoUrl?: string | null; name: string; tagline: string; category?: { name: string } | null }, index: number) => (
               <Link key={product.id} href={`/products/${product.slug}`}>
                 <Card className="group h-full hover:border-zinc-700 transition-all duration-300 hover:shadow-xl hover:shadow-violet-500/5 hover:-translate-y-1">
                   <CardContent className="p-6">
                     <div className="flex items-start gap-4">
                       {/* Logo placeholder with gradient */}
                       <div className="relative h-14 w-14 flex-shrink-0 overflow-hidden rounded-xl bg-gradient-to-br from-violet-600/20 to-purple-600/20 border border-zinc-800">
-                        {product.logo_url ? (
+                        {product.logoUrl ? (
                           <Image
-                            src={product.logo_url}
+                            src={product.logoUrl}
                             alt={product.name}
                             fill
                             className="object-cover"

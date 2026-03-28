@@ -1,14 +1,16 @@
-import { createClient } from "@/lib/supabase/server";
+import { redirect } from "next/navigation";
 import { ProductForm } from "@/components/forms/product-form";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { getAllCategories } from "@/lib/db/queries/categories";
+import { getCurrentUser } from "@/lib/auth/utils";
 
 export default async function SubmitPage() {
-  const supabase = await createClient();
+  const user = await getCurrentUser();
+  if (!user) {
+    redirect("/auth/login");
+  }
 
-  const { data: categories } = await supabase
-    .from("categories")
-    .select("*")
-    .order("name");
+  const categories = await getAllCategories();
 
   return (
     <div className="container mx-auto px-4 py-12">

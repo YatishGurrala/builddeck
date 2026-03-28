@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ExternalLink, Star, ArrowLeft } from "lucide-react";
-import { createClient } from "@/lib/supabase/server";
+import { getProductBySlug } from "@/lib/db/queries/products";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { formatDate } from "@/lib/utils";
@@ -13,18 +13,15 @@ interface ProductPageProps {
 
 export default async function ProductPage({ params }: ProductPageProps) {
   const { slug } = await params;
-  const supabase = await createClient();
 
-  const { data: product } = await supabase
-    .from("products")
-    .select("*, category:categories(*), profile:profiles(*)")
-    .eq("slug", slug)
-    .eq("status", "approved")
-    .single();
+  const product = await getProductBySlug(slug);
 
-  if (!product) {
+  if (!product || product.status !== "APPROVED") {
     notFound();
   }
+
+  // Parse screenshots from JSON string
+  const screenshots = product.screenshots ? JSON.parse(product.screenshots) : [];
 
   return (
     <div className="container mx-auto px-4 py-12">
@@ -42,9 +39,9 @@ export default async function ProductPage({ params }: ProductPageProps) {
           {/* Header */}
           <div className="flex items-start gap-6">
             <div className="relative h-24 w-24 flex-shrink-0 overflow-hidden rounded-2xl bg-zinc-800">
-              {product.logo_url ? (
+              {product.logoUrl ? (
                 <Image
-                  src={product.logo_url}
+                  src={product.logoUrl}
                   alt={product.name}
                   fill
                   className="object-cover"
@@ -71,7 +68,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
                   </Link>
                 )}
                 <span className="text-sm text-zinc-500">
-                  Added {formatDate(product.created_at)}
+                  Added {formatDate(product.createdAt)}
                 </span>
               </div>
             </div>
@@ -88,11 +85,11 @@ export default async function ProductPage({ params }: ProductPageProps) {
           </div>
 
           {/* Screenshots */}
-          {product.screenshots && product.screenshots.length > 0 && (
+          {screenshots && screenshots.length > 0 && (
             <div>
               <h2 className="text-xl font-semibold text-white mb-4">Screenshots</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {product.screenshots.map((screenshot: string, index: number) => (
+                {screenshots.map((screenshot: string, index: number) => (
                   <div
                     key={index}
                     className="relative aspect-video overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900"
@@ -114,7 +111,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
         <div className="space-y-6">
           <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-6">
             <a
-              href={product.website_url}
+              href={product.websiteUrl}
               target="_blank"
               rel="noopener noreferrer"
             >
@@ -125,33 +122,33 @@ export default async function ProductPage({ params }: ProductPageProps) {
             </a>
           </div>
 
-          {product.profile && (
+          {product.user && (
             <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-6">
               <h3 className="text-sm font-medium text-zinc-400 mb-4">
                 Submitted by
               </h3>
               <div className="flex items-center gap-3">
                 <div className="relative h-10 w-10 overflow-hidden rounded-full bg-zinc-800">
-                  {product.profile.avatar_url ? (
+                  {product.user.avatarUrl ? (
                     <Image
-                      src={product.profile.avatar_url}
-                      alt={product.profile.name || "User"}
+                      src={product.user.avatarUrl}
+                      alt={product.user.name || "User"}
                       fill
                       className="object-cover"
                     />
                   ) : (
                     <div className="flex h-full w-full items-center justify-center text-sm font-medium text-zinc-500">
-                      {(product.profile.name || product.profile.email)[0].toUpperCase()}
+                      {(product.user.name || product.user.email)[0].toUpperCase()}
                     </div>
                   )}
                 </div>
                 <div>
                   <p className="font-medium text-white">
-                    {product.profile.name || "Anonymous"}
+                    {product.user.name || "Anonymous"}
                   </p>
-                  {product.profile.username && (
+                  {product.user.username && (
                     <p className="text-sm text-zinc-500">
-                      @{product.profile.username}
+                      @{product.user.username}
                     </p>
                   )}
                 </div>

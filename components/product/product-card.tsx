@@ -16,9 +16,9 @@ export function ProductCard({ product }: ProductCardProps) {
         <CardContent className="p-6">
           <div className="flex items-start gap-4">
             <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-xl bg-zinc-800">
-              {product.logo_url ? (
+              {product.logoUrl ? (
                 <Image
-                  src={product.logo_url}
+                  src={product.logoUrl}
                   alt={product.name}
                   fill
                   className="object-cover"

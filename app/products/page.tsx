@@ -1,8 +1,10 @@
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/server";
 import { ProductGrid } from "@/components/product/product-grid";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { getAllCategories, getCategoryBySlug } from "@/lib/db/queries/categories";
+import { getProducts, getFeaturedProducts } from "@/lib/db/queries/products";
+import { Category, Product } from "@/types";
 
 interface ProductsPageProps {
   searchParams: Promise<{ category?: string; featured?: string }>;
@@ -10,38 +12,28 @@ interface ProductsPageProps {
 
 export default async function ProductsPage({ searchParams }: ProductsPageProps) {
   const params = await searchParams;
-  const supabase = await createClient();
 
   // Fetch categories for filters
-  const { data: categories } = await supabase
-    .from("categories")
-    .select("*")
-    .order("name");
+  const categories = await getAllCategories();
 
-  // Build products query
-  let query = supabase
-    .from("products")
-    .select("*, category:categories(*)")
-    .eq("status", "approved")
-    .order("created_at", { ascending: false });
-
-  if (params.category) {
-    const { data: category } = await supabase
-      .from("categories")
-      .select("id")
-      .eq("slug", params.category)
-      .single();
-
-    if (category) {
-      query = query.eq("category_id", category.id);
-    }
-  }
-
+  // Fetch products with filters
+  let products;
+  
   if (params.featured === "true") {
-    query = query.eq("featured", true);
+    products = await getFeaturedProducts();
+  } else if (params.category) {
+    const category = await getCategoryBySlug(params.category);
+    if (category) {
+      const result = await getProducts({ filters: { categoryId: category.id, status: "APPROVED" } });
+      products = result.data;
+    } else {
+      const result = await getProducts({ filters: { status: "APPROVED" } });
+      products = result.data;
+    }
+  } else {
+    const result = await getProducts({ filters: { status: "APPROVED" } });
+    products = result.data;
   }
-
-  const { data: products } = await query;
 
   return (
     <div className="container mx-auto px-4 py-12">
@@ -71,7 +63,7 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
               Featured
             </Badge>
           </Link>
-          {categories?.map((category) => (
+          {categories?.map((category: Category) => (
             <Link key={category.id} href={`/products?category=${category.slug}`}>
               <Badge
                 variant={params.category === category.slug ? "default" : "outline"}
@@ -86,7 +78,7 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
 
       {/* Products Grid */}
       <ProductGrid
-        products={products || []}
+        products={(products || []) as Product[]}
         emptyMessage="No products found in this category."
       />
     </div>
