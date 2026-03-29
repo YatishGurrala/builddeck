@@ -13,16 +13,16 @@ export async function subscribeToNewsletter(
     return { success: false, error: result.error.errors[0].message };
   }
 
-  // Check if already subscribed
-  const existing = await prisma.newsletterSubscriber.findUnique({
-    where: { email },
-  });
-
-  if (existing) {
-    return { success: false, error: "You're already subscribed!" };
-  }
-
   try {
+    // Check if already subscribed
+    const existing = await prisma.newsletterSubscriber.findUnique({
+      where: { email },
+    });
+
+    if (existing) {
+      return { success: false, error: "You're already subscribed!" };
+    }
+
     // Insert subscriber
     await prisma.newsletterSubscriber.create({
       data: { email },
