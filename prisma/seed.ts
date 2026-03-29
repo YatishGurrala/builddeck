@@ -33,20 +33,20 @@ async function main() {
 
   console.log(`✅ Seeded ${categories.length} categories`);
 
-  // Create admin user (optional - uncomment and set password to create)
-  // const bcrypt = await import("bcryptjs");
-  // const hashedPassword = await bcrypt.hash("your-admin-password", 12);
-  // await prisma.user.upsert({
-  //   where: { email: "admin@builddeck.io" },
-  //   update: {},
-  //   create: {
-  //     email: "admin@builddeck.io",
-  //     name: "Admin",
-  //     password: hashedPassword,
-  //     role: "ADMIN",
-  //   },
-  // });
-  // console.log("✅ Created admin user");
+  // Create admin user
+  const bcrypt = await import("bcryptjs");
+  const hashedPassword = await bcrypt.hash("Admin@123", 12);
+  await prisma.user.upsert({
+    where: { email: "admin@builddeck.io" },
+    update: { role: "ADMIN" },
+    create: {
+      email: "admin@builddeck.io",
+      name: "Admin",
+      password: hashedPassword,
+      role: "ADMIN",
+    },
+  });
+  console.log("✅ Created admin user");
 
   console.log("🎉 Seeding complete!");
 }

@@ -8,6 +8,7 @@ import {
   Mail,
   ExternalLink,
   LayoutGrid,
+  Share2,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -54,12 +55,13 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
   });
 
   // Fetch stats for all products
-  const [pendingCount, approvedCount, rejectedCount, totalCount, subscriberCount] = await Promise.all([
+  const [pendingCount, approvedCount, rejectedCount, totalCount, subscriberCount, socialPostCount] = await Promise.all([
     prisma.product.count({ where: { status: "PENDING" } }),
     prisma.product.count({ where: { status: "APPROVED" } }),
     prisma.product.count({ where: { status: "REJECTED" } }),
     prisma.product.count(),
     prisma.newsletterSubscriber.count(),
+    prisma.socialPost.count({ where: { status: "DRAFT" } }),
   ]);
 
   return (
@@ -73,7 +75,7 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
       </div>
 
       {/* Stats Cards - Clickable Filters */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
         <Link href="/admin">
           <Card className={`cursor-pointer transition-all hover:border-zinc-700 ${!params.status ? "border-violet-500/50 bg-violet-500/5" : ""}`}>
             <CardContent className="p-4">
@@ -141,6 +143,20 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
             </div>
           </CardContent>
         </Card>
+
+        <Link href="/admin/social">
+          <Card className="cursor-pointer transition-all hover:border-zinc-700 hover:border-violet-500/50">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-zinc-400">Social Drafts</p>
+                  <p className="text-2xl font-bold text-blue-400">{socialPostCount}</p>
+                </div>
+                <Share2 className="h-5 w-5 text-blue-500/50" />
+              </div>
+            </CardContent>
+          </Card>
+        </Link>
       </div>
 
       {/* Products Table */}

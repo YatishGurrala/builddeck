@@ -1,8 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ExternalLink, Star } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { ArrowRight } from "lucide-react";
 import type { Product } from "@/types";
 
 interface ProductCardProps {
@@ -12,48 +10,48 @@ interface ProductCardProps {
 export function ProductCard({ product }: ProductCardProps) {
   return (
     <Link href={`/products/${product.slug}`}>
-      <Card className="group h-full hover:border-zinc-700 transition-all hover:shadow-lg hover:shadow-violet-500/5">
-        <CardContent className="p-6">
-          <div className="flex items-start gap-4">
-            <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-xl bg-zinc-800">
-              {product.logoUrl ? (
-                <Image
-                  src={product.logoUrl}
-                  alt={product.name}
-                  fill
-                  className="object-cover"
-                />
-              ) : (
-                <div className="flex h-full w-full items-center justify-center text-2xl font-bold text-zinc-600">
-                  {product.name[0]}
-                </div>
-              )}
-            </div>
-
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2">
-                <h3 className="font-semibold text-white group-hover:text-violet-400 transition-colors truncate">
-                  {product.name}
-                </h3>
-                {product.featured && (
-                  <Star className="h-4 w-4 text-yellow-500 fill-yellow-500 flex-shrink-0" />
-                )}
-              </div>
-              <p className="mt-1 text-sm text-zinc-400 line-clamp-2">
-                {product.tagline}
-              </p>
-              <div className="mt-3 flex items-center gap-2">
-                {product.category && (
-                  <Badge variant="secondary" className="text-xs">
-                    {product.category.name}
-                  </Badge>
-                )}
-                <ExternalLink className="h-3 w-3 text-zinc-500 ml-auto" />
-              </div>
-            </div>
+      <div className="group bg-[#1c2025] rounded-2xl p-6 border border-transparent hover:border-white/5 hover:bg-[#36393f] transition-all duration-300 hover:-translate-y-2 h-full flex flex-col">
+        <div className="flex justify-between items-start mb-6">
+          <div className="w-16 h-16 bg-[#31353b] rounded-2xl flex items-center justify-center border border-white/5 overflow-hidden shadow-inner">
+            {product.logoUrl ? (
+              <Image
+                src={product.logoUrl}
+                alt={product.name}
+                width={40}
+                height={40}
+                className="object-contain"
+              />
+            ) : (
+              <span className="text-2xl font-bold text-[#0070f3]">
+                {product.name[0]}
+              </span>
+            )}
           </div>
-        </CardContent>
-      </Card>
+          {product.category && (
+            <span className="px-3 py-1 rounded-full bg-[#31353b] text-[10px] uppercase tracking-wider font-bold text-[#c1c6d7]">
+              {product.category.name}
+            </span>
+          )}
+        </div>
+        
+        <h3 className="text-xl font-headline font-bold text-white mb-2 group-hover:text-[#aec6ff] transition-colors">
+          {product.name}
+        </h3>
+        <p className="text-[#c1c6d7] text-sm mb-6 leading-relaxed flex-grow line-clamp-2">
+          {product.tagline}
+        </p>
+        
+        <div className="flex items-center justify-between mt-auto pt-4 border-t border-white/5">
+          {product.featured && (
+            <span className="text-[10px] uppercase tracking-wider font-bold text-[#3ce36a]">
+              Featured
+            </span>
+          )}
+          <span className="flex items-center gap-1 text-[#0070f3] font-bold text-sm group-hover:gap-2 transition-all ml-auto">
+            Visit Site <ArrowRight className="h-4 w-4" />
+          </span>
+        </div>
+      </div>
     </Link>
   );
 }

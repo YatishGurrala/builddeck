@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { productSchema } from "@/lib/validations";
 import { slugify } from "@/lib/utils";
+import { createDraftsForProduct } from "@/lib/social";
 import type { ActionResponse } from "@/types";
 
 type ProductStatus = "PENDING" | "APPROVED" | "REJECTED";
@@ -180,6 +181,16 @@ export async function updateProductStatus(
         ...(status === "APPROVED" && { approvedAt: new Date() }),
       },
     });
+
+    // When approving, generate social post drafts
+    if (status === "APPROVED") {
+      try {
+        await createDraftsForProduct(productId);
+      } catch (error) {
+        console.error("Failed to create social drafts:", error);
+        // Don't fail the approval if draft generation fails
+      }
+    }
 
     revalidatePath("/admin");
     revalidatePath("/products");

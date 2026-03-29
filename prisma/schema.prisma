@@ -96,6 +96,7 @@ model Product {
   reviewedBy      User?     @relation("ReviewedBy", fields: [reviewedById], references: [id])
   
   submissions     Submission[]
+  socialPosts     SocialPost[]
   
   // Timestamps
   submittedAt     DateTime  @default(now())
@@ -150,4 +151,34 @@ model NewsletterSubscriber {
 
   @@index([email])
   @@index([confirmed])
+}
+
+// Social post drafts for X (Twitter) and LinkedIn
+model SocialPost {
+  id              String    @id @default(cuid())
+  
+  // Platform: X, LINKEDIN
+  platform        String
+  
+  // Status: DRAFT, SCHEDULED, PUBLISHED, FAILED
+  status          String    @default("DRAFT")
+  
+  // Content
+  content         String    // The post text
+  
+  // Publishing details
+  publishedAt     DateTime?
+  publishedId     String?   // External post ID from the platform
+  errorMessage    String?   // If publishing failed
+  
+  // Relations
+  productId       String
+  product         Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([productId])
+  @@index([platform])
+  @@index([status])
 }
