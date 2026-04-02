@@ -14,7 +14,7 @@ export const productSchema = z.object({
     .min(50, "Description must be at least 50 characters")
     .max(2000, "Description must be less than 2000 characters"),
   website_url: z.string().url("Please enter a valid URL"),
-  category_id: z.string().uuid("Please select a category"),
+  category_id: z.string().min(1, "Please select a category"),
 });
 
 export const loginSchema = z.object({

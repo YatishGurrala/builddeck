@@ -234,7 +234,7 @@ export function requireAuthOrThrow(session: { user?: { id?: string } } | null): 
  */
 export function requireAdminOrThrow(session: { user?: { id?: string; role?: string } } | null): void {
   requireAuthOrThrow(session);
-  if (session.user.role !== 'ADMIN') {
+  if ((session as { user: { role?: string } }).user.role !== 'ADMIN') {
     throw Errors.permissionDenied();
   }
 }

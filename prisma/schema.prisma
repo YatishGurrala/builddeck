@@ -1,12 +1,12 @@
 // Prisma Schema for Builddeck
-// Using SQLite for local development (can migrate to PostgreSQL for production)
+// Using PostgreSQL (Neon) for production
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
