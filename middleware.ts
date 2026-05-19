@@ -1,5 +1,5 @@
-import { auth } from "@/lib/auth/config";
-import { NextResponse } from "next/server";
+import { getToken } from "next-auth/jwt";
+import { NextRequest, NextResponse } from "next/server";
 
 // Routes that require authentication
 const protectedRoutes = ["/dashboard", "/submit"];
@@ -8,10 +8,11 @@ const adminRoutes = ["/admin"];
 // Routes only for unauthenticated users
 const authRoutes = ["/login", "/signup"];
 
-export default auth((req) => {
+export default async function middleware(req: NextRequest) {
   const { nextUrl } = req;
-  const isLoggedIn = !!req.auth;
-  const isAdmin = req.auth?.user?.role === "ADMIN";
+  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+  const isLoggedIn = !!token;
+  const isAdmin = token?.role === "ADMIN";
 
   // Redirect logged-in users away from auth pages
   if (isLoggedIn && authRoutes.includes(nextUrl.pathname)) {
@@ -36,7 +37,7 @@ export default auth((req) => {
   }
 
   return NextResponse.next();
-});
+}
 
 export const config = {
   matcher: [

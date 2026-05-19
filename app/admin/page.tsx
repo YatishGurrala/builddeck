@@ -9,6 +9,7 @@ import {
   ExternalLink,
   LayoutGrid,
   Share2,
+  Radio,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -153,6 +154,20 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
                   <p className="text-2xl font-bold text-blue-400">{socialPostCount}</p>
                 </div>
                 <Share2 className="h-5 w-5 text-blue-500/50" />
+              </div>
+            </CardContent>
+          </Card>
+        </Link>
+
+        <Link href="/admin/reach">
+          <Card className="cursor-pointer transition-all hover:border-zinc-700 hover:border-emerald-500/50">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-zinc-400">Reach Debug</p>
+                  <p className="text-2xl font-bold text-emerald-400">Open</p>
+                </div>
+                <Radio className="h-5 w-5 text-emerald-500/50" />
               </div>
             </CardContent>
           </Card>

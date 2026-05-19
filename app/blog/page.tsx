@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ArrowRight, Clock, Search } from "lucide-react";
+import { NewsletterForm } from "@/components/forms/newsletter-form";
 
 const blogPosts = [
   {
@@ -224,16 +225,7 @@ export default function BlogPage() {
             Weekly insights from the best makers and product teams. No spam,
             just actionable content.
           </p>
-          <div className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
-            <input
-              type="email"
-              placeholder="you@example.com"
-              className="flex-1 px-4 py-3 rounded-full bg-[#1c2025] border border-[#414754]/30 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#0070f3] focus:border-transparent"
-            />
-            <button className="bg-[#0070f3] text-white px-6 py-3 rounded-full font-bold hover:shadow-[0_0_15px_rgba(0,112,243,0.3)] transition-all">
-              Subscribe
-            </button>
-          </div>
+          <NewsletterForm />
         </div>
       </section>
     </main>

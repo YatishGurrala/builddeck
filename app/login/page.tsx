@@ -13,20 +13,26 @@ import { login } from "@/actions/auth";
 export default function LoginPage() {
   const searchParams = useSearchParams();
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const redirectTo = searchParams.get("redirect") || "/dashboard";
+  const checkEmail = searchParams.get("checkEmail") === "true";
 
   async function handleSubmit(formData: FormData) {
     setIsLoading(true);
     setError(null);
-
+    setSuccess(null);
     formData.append("redirect", redirectTo);
+
     const result = await login(formData);
 
     if (!result.success) {
       setError(result.error || "Something went wrong");
-      setIsLoading(false);
+    } else {
+      setSuccess("Magic link sent. Check your inbox to continue.");
     }
+
+    setIsLoading(false);
   }
 
   return (
@@ -38,14 +44,20 @@ export default function LoginPage() {
               <Rocket className="h-6 w-6 text-violet-500" />
             </div>
           </div>
-          <CardTitle>Welcome back</CardTitle>
-          <CardDescription>Sign in to your Builddeck account</CardDescription>
+          <CardTitle>Sign in with Magic Link</CardTitle>
+          <CardDescription>Enter your email and we&apos;ll send a secure sign-in link</CardDescription>
         </CardHeader>
         <CardContent>
           <form action={handleSubmit} className="space-y-4">
             {error && (
               <div className="rounded-lg bg-red-500/10 border border-red-500/20 p-3 text-sm text-red-400">
                 {error}
+              </div>
+            )}
+
+            {(success || checkEmail) && (
+              <div className="rounded-lg bg-green-500/10 border border-green-500/20 p-3 text-sm text-green-300">
+                {success || "Check your email for the sign-in link."}
               </div>
             )}
 
@@ -60,19 +72,8 @@ export default function LoginPage() {
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                name="password"
-                type="password"
-                placeholder="••••••••"
-                required
-              />
-            </div>
-
             <Button type="submit" className="w-full" isLoading={isLoading}>
-              Sign In
+              Send Magic Link
             </Button>
           </form>
 

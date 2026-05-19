@@ -14,15 +14,20 @@ export function NewsletterForm() {
     e.preventDefault();
     setStatus("loading");
 
-    const result = await subscribeToNewsletter(email);
+    try {
+      const result = await subscribeToNewsletter(email);
 
-    if (result.success) {
-      setStatus("success");
-      setMessage("Thanks for subscribing! Check your email for confirmation.");
-      setEmail("");
-    } else {
+      if (result.success) {
+        setStatus("success");
+        setMessage("Thanks for subscribing! Check your email for confirmation.");
+        setEmail("");
+      } else {
+        setStatus("error");
+        setMessage(result.error || "Something went wrong");
+      }
+    } catch {
       setStatus("error");
-      setMessage(result.error || "Something went wrong");
+      setMessage("Could not submit right now. Please try again.");
     }
   }
 

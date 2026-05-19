@@ -2,7 +2,12 @@ import '@testing-library/jest-dom'
 import { beforeAll, afterAll, afterEach, vi } from 'vitest'
 
 // Mock environment variables
-vi.stubEnv('RESEND_API_KEY', 'test-api-key')
+vi.stubEnv('EMAIL_SERVER_HOST', 'smtp.hostinger.com')
+vi.stubEnv('EMAIL_SERVER_PORT', '465')
+vi.stubEnv('EMAIL_SERVER_SECURE', 'true')
+vi.stubEnv('EMAIL_SERVER_USER', 'hello@example.com')
+vi.stubEnv('EMAIL_SERVER_PASSWORD', 'test-password')
+vi.stubEnv('EMAIL_FROM', 'BuildDeck <hello@example.com>')
 vi.stubEnv('SOCIAL_MOCK_MODE', 'true')
 vi.stubEnv('DATABASE_URL', 'postgresql://test:test@localhost:5432/test')
 vi.stubEnv('NEXTAUTH_SECRET', 'test-secret')

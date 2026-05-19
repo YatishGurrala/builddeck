@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 // Mock dependencies - use vi.hoisted to ensure they exist before vi.mock runs
-const { mockPrisma, mockSendNewsletterConfirmation } = vi.hoisted(() => ({
+const { mockPrisma, mockSendNewsletterConfirmation, mockSyncMakerDigestContact, mockIsReachWelcomeManaged } = vi.hoisted(() => ({
   mockPrisma: {
     newsletterSubscriber: {
       findUnique: vi.fn(),
@@ -9,6 +9,8 @@ const { mockPrisma, mockSendNewsletterConfirmation } = vi.hoisted(() => ({
     },
   },
   mockSendNewsletterConfirmation: vi.fn(),
+  mockSyncMakerDigestContact: vi.fn(),
+  mockIsReachWelcomeManaged: vi.fn(),
 }))
 
 vi.mock('@/lib/db/prisma', () => ({
@@ -19,12 +21,19 @@ vi.mock('@/lib/resend', () => ({
   sendNewsletterConfirmation: (...args: unknown[]) => mockSendNewsletterConfirmation(...args),
 }))
 
+vi.mock('@/lib/hostinger-reach', () => ({
+  syncMakerDigestContact: (...args: unknown[]) => mockSyncMakerDigestContact(...args),
+  isReachWelcomeManaged: () => mockIsReachWelcomeManaged(),
+}))
+
 // Import after mocking
 import { subscribeToNewsletter } from '@/actions/newsletter'
 
 describe('Newsletter Actions', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    mockSyncMakerDigestContact.mockResolvedValue({ success: true, skipped: false })
+    mockIsReachWelcomeManaged.mockReturnValue(false)
   })
 
   describe('subscribeToNewsletter', () => {
@@ -67,6 +76,7 @@ describe('Newsletter Actions', () => {
       expect(mockPrisma.newsletterSubscriber.create).toHaveBeenCalledWith({
         data: { email: 'new@example.com' },
       })
+      expect(mockSyncMakerDigestContact).toHaveBeenCalledWith('new@example.com')
     })
 
     it('should send confirmation email after subscription', async () => {
@@ -80,6 +90,35 @@ describe('Newsletter Actions', () => {
       await subscribeToNewsletter('new@example.com')
 
       expect(mockSendNewsletterConfirmation).toHaveBeenCalledWith('new@example.com')
+    })
+
+    it('should not send SMTP welcome when Reach manages welcome flow', async () => {
+      mockPrisma.newsletterSubscriber.findUnique.mockResolvedValue(null)
+      mockPrisma.newsletterSubscriber.create.mockResolvedValue({
+        id: 'new-sub',
+        email: 'new@example.com',
+      })
+      mockIsReachWelcomeManaged.mockReturnValue(true)
+
+      const result = await subscribeToNewsletter('new@example.com')
+
+      expect(result.success).toBe(true)
+      expect(mockSendNewsletterConfirmation).not.toHaveBeenCalled()
+    })
+
+    it('should return error when Reach sync fails', async () => {
+      mockPrisma.newsletterSubscriber.findUnique.mockResolvedValue(null)
+      mockSyncMakerDigestContact.mockResolvedValue({
+        success: false,
+        skipped: false,
+        error: 'Reach API failed',
+      })
+
+      const result = await subscribeToNewsletter('new@example.com')
+
+      expect(result.success).toBe(false)
+      expect(result.error).toBe('Reach API failed')
+      expect(mockPrisma.newsletterSubscriber.create).not.toHaveBeenCalled()
     })
 
     it('should return error on database failure', async () => {

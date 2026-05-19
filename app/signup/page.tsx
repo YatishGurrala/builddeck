@@ -11,18 +11,23 @@ import { signup } from "@/actions/auth";
 
 export default function SignupPage() {
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   async function handleSubmit(formData: FormData) {
     setIsLoading(true);
     setError(null);
+    setSuccess(null);
 
     const result = await signup(formData);
 
     if (!result.success) {
       setError(result.error || "Something went wrong");
-      setIsLoading(false);
+    } else {
+      setSuccess("Signup link sent. Check your inbox to continue.");
     }
+
+    setIsLoading(false);
   }
 
   return (
@@ -34,14 +39,20 @@ export default function SignupPage() {
               <Rocket className="h-6 w-6 text-violet-500" />
             </div>
           </div>
-          <CardTitle>Create an account</CardTitle>
-          <CardDescription>Join Builddeck and start launching products</CardDescription>
+          <CardTitle>Create your account</CardTitle>
+          <CardDescription>Start with your email, then confirm via magic link</CardDescription>
         </CardHeader>
         <CardContent>
           <form action={handleSubmit} className="space-y-4">
             {error && (
               <div className="rounded-lg bg-red-500/10 border border-red-500/20 p-3 text-sm text-red-400">
                 {error}
+              </div>
+            )}
+
+            {success && (
+              <div className="rounded-lg bg-green-500/10 border border-green-500/20 p-3 text-sm text-green-300">
+                {success}
               </div>
             )}
 
@@ -67,30 +78,8 @@ export default function SignupPage() {
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                name="password"
-                type="password"
-                placeholder="••••••••"
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirm Password</Label>
-              <Input
-                id="confirmPassword"
-                name="confirmPassword"
-                type="password"
-                placeholder="••••••••"
-                required
-              />
-            </div>
-
             <Button type="submit" className="w-full" isLoading={isLoading}>
-              Create Account
+              Send Signup Link
             </Button>
           </form>
 
