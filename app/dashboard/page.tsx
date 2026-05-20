@@ -79,6 +79,34 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
         </Card>
       </div>
 
+      <Card className="mb-8">
+        <CardHeader>
+          <CardTitle>Founder Profile</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-zinc-400">
+            Manage your public founder profile, links, products, and analytics.
+          </p>
+          <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+            {[
+              { href: "/dashboard/profile", label: "Profile" },
+              { href: "/dashboard/links", label: "Links" },
+              { href: "/dashboard/products", label: "Products" },
+              { href: "/dashboard/analytics", label: "Analytics" },
+            ].map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="inline-flex items-center justify-between gap-2 rounded-lg border border-white/10 bg-[#101419] px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-white/5"
+              >
+                {item.label}
+                <ArrowRight className="h-4 w-4 text-zinc-400" />
+              </Link>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
       <Card>
         <CardHeader>
           <CardTitle>Your Builds</CardTitle>
