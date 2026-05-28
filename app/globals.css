@@ -2,20 +2,20 @@
 @import "tailwindcss";
 
 :root {
-  /* Builddeck Design System - Based on Lumina Deck */
-  --background: #101419;
-  --foreground: #e0e2ea;
+  /* Light mode */
+  --background: #f6f8fc;
+  --foreground: #111827;
   
   /* Surface Colors */
-  --surface: #101419;
-  --surface-dim: #101419;
-  --surface-bright: #36393f;
-  --surface-container-lowest: #0a0e13;
-  --surface-container-low: #181c21;
-  --surface-container: #1c2025;
-  --surface-container-high: #262a30;
-  --surface-container-highest: #31353b;
-  --surface-variant: #31353b;
+  --surface: #ffffff;
+  --surface-dim: #eef2f9;
+  --surface-bright: #e2e8f0;
+  --surface-container-lowest: #ffffff;
+  --surface-container-low: #f8fafc;
+  --surface-container: #eef2f7;
+  --surface-container-high: #e5ebf3;
+  --surface-container-highest: #d6deea;
+  --surface-variant: #d6deea;
   
   /* Primary Colors */
   --primary: #0070f3;
@@ -37,13 +37,13 @@
   --on-tertiary-container: #ffffff;
   
   /* Text Colors */
-  --on-surface: #e0e2ea;
-  --on-surface-variant: #c1c6d7;
-  --on-background: #e0e2ea;
+  --on-surface: #111827;
+  --on-surface-variant: #4b5563;
+  --on-background: #111827;
   
   /* Outline Colors */
-  --outline: #8b90a0;
-  --outline-variant: #414754;
+  --outline: #94a3b8;
+  --outline-variant: #cbd5e1;
   
   /* Error Colors */
   --error: #ffb4ab;
@@ -52,9 +52,30 @@
   --on-error-container: #ffdad6;
   
   /* Inverse Colors */
+  --inverse-surface: #1f2937;
+  --inverse-on-surface: #f8fafc;
+  --inverse-primary: #0059c5;
+}
+
+.dark {
+  --background: #101419;
+  --foreground: #e0e2ea;
+  --surface: #101419;
+  --surface-dim: #101419;
+  --surface-bright: #36393f;
+  --surface-container-lowest: #0a0e13;
+  --surface-container-low: #181c21;
+  --surface-container: #1c2025;
+  --surface-container-high: #262a30;
+  --surface-container-highest: #31353b;
+  --surface-variant: #31353b;
+  --on-surface: #e0e2ea;
+  --on-surface-variant: #c1c6d7;
+  --on-background: #e0e2ea;
+  --outline: #8b90a0;
+  --outline-variant: #414754;
   --inverse-surface: #e0e2ea;
   --inverse-on-surface: #2d3136;
-  --inverse-primary: #0059c5;
 }
 
 body {

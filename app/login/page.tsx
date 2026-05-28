@@ -37,15 +37,17 @@ export default function LoginPage() {
 
   return (
     <div className="container mx-auto flex min-h-[calc(100vh-200px)] items-center justify-center px-4">
-      <Card className="w-full max-w-md">
+      <Card className="w-full max-w-md border-[var(--outline-variant)] bg-[var(--surface-container-low)]">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
-            <div className="rounded-full bg-violet-600/20 p-3">
-              <Rocket className="h-6 w-6 text-violet-500" />
+            <div className="rounded-full bg-[#0070f3]/15 p-3">
+              <Rocket className="h-6 w-6 text-[#0070f3]" />
             </div>
           </div>
-          <CardTitle>Sign in with Magic Link</CardTitle>
-          <CardDescription>Enter your email and we&apos;ll send a secure sign-in link</CardDescription>
+          <CardTitle className="text-[var(--on-surface)]">Sign in with Magic Link</CardTitle>
+          <CardDescription className="text-[var(--on-surface-variant)]">
+            Enter your email and we&apos;ll send a secure sign-in link
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <form action={handleSubmit} className="space-y-4">
@@ -62,24 +64,25 @@ export default function LoginPage() {
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email" className="text-[var(--on-surface-variant)]">Email</Label>
               <Input
                 id="email"
                 name="email"
                 type="email"
                 placeholder="you@example.com"
                 required
+                className="border-[var(--outline)] bg-[var(--surface-container)] text-[var(--on-surface)] placeholder:text-[var(--on-surface-variant)]"
               />
             </div>
 
-            <Button type="submit" className="w-full" isLoading={isLoading}>
+            <Button type="submit" className="w-full bg-[#0070f3] text-white" isLoading={isLoading}>
               Send Magic Link
             </Button>
           </form>
 
-          <p className="mt-6 text-center text-sm text-zinc-400">
+          <p className="mt-6 text-center text-sm text-[var(--on-surface-variant)]">
             Don&apos;t have an account?{" "}
-            <Link href="/signup" className="text-violet-400 hover:underline">
+            <Link href="/signup" className="text-[#0070f3] hover:underline">
               Sign up
             </Link>
           </p>

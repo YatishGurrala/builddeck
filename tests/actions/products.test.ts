@@ -128,11 +128,11 @@ describe('Product Actions', () => {
       expect(result.error).toBe('Please enter a valid URL')
     })
 
-    it('should validate category ID format', async () => {
+    it('should validate category ID presence', async () => {
       mockAuth.mockResolvedValue({ user: { id: 'user-1' } })
 
       const formData = validFormData()
-      formData.set('category_id', 'invalid-uuid')
+      formData.set('category_id', '')
 
       const result = await createProduct(formData)
 

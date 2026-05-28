@@ -219,6 +219,16 @@ model NewsletterSubscriber {
   @@index([confirmed])
 }
 
+model WaitlistLead {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  source    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([createdAt])
+}
+
 // Social post drafts for X (Twitter) and LinkedIn
 model SocialPost {
   id              String    @id @default(cuid())

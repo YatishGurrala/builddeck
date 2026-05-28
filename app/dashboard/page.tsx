@@ -39,12 +39,19 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
             Welcome back, {user?.name || user?.email}
           </p>
         </div>
-        <Link href="/">
-          <Button className="gap-2">
-            <Plus className="h-4 w-4" />
-            Generate New Build
-          </Button>
-        </Link>
+        <div className="flex items-center gap-3">
+          {user.role === "ADMIN" && (
+            <Link href="/dashboard/waitlist">
+              <Button variant="outline">View Waitlist Leads</Button>
+            </Link>
+          )}
+          <Link href="/">
+            <Button className="gap-2">
+              <Plus className="h-4 w-4" />
+              Generate New Build
+            </Button>
+          </Link>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">

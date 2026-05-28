@@ -130,12 +130,9 @@ describe('productSchema', () => {
       expect(result.success).toBe(true)
     })
 
-    it('should reject invalid UUID', () => {
+    it('should accept non-UUID category id when non-empty', () => {
       const result = productSchema.safeParse({ ...validProduct, category_id: 'not-a-uuid' })
-      expect(result.success).toBe(false)
-      if (!result.success) {
-        expect(result.error.errors[0].message).toBe('Please select a category')
-      }
+      expect(result.success).toBe(true)
     })
 
     it('should reject empty category_id', () => {

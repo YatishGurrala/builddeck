@@ -7,12 +7,27 @@ const protectedRoutes = ["/dashboard", "/submit"];
 const adminRoutes = ["/admin"];
 // Routes only for unauthenticated users
 const authRoutes = ["/login", "/signup"];
+// Routes intentionally hidden for the first MVP release
+const mvpLockedRoutes = [
+  "/blog",
+  "/products",
+  "/categories",
+  "/submit",
+  "/contact",
+  "/privacy",
+  "/newsletter",
+];
 
 export default async function middleware(req: NextRequest) {
   const { nextUrl } = req;
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
   const isLoggedIn = !!token;
   const isAdmin = token?.role === "ADMIN";
+
+  // Hide non-MVP routes from all users during first release
+  if (mvpLockedRoutes.some((route) => nextUrl.pathname.startsWith(route))) {
+    return NextResponse.redirect(new URL("/", nextUrl));
+  }
 
   // Redirect logged-in users away from auth pages
   if (isLoggedIn && authRoutes.includes(nextUrl.pathname)) {
