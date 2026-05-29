@@ -2,7 +2,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ExternalLink, ArrowLeft, CheckCircle, Share2, Bookmark } from "lucide-react";
-import { getProductBySlug } from "@/lib/db/queries/products";
+import { getProductBySlug, toProduct } from "@/lib/buildstack/queries/products";
+import { getCategoryById } from "@/lib/buildstack/queries/categories";
 import { Button } from "@/components/ui/button";
 import { formatDate } from "@/lib/utils";
 
@@ -13,11 +14,32 @@ interface ProductPageProps {
 export default async function ProductPage({ params }: ProductPageProps) {
   const { slug } = await params;
 
-  const product = await getProductBySlug(slug);
+  const productRecord = await getProductBySlug(slug);
 
-  if (!product || product.status !== "APPROVED") {
+  if (!productRecord || productRecord.data.status !== "APPROVED") {
     notFound();
   }
+
+  const categoryRecord = productRecord.data.categoryId
+    ? await getCategoryById(productRecord.data.categoryId)
+    : null;
+
+  const product = toProduct(productRecord, {
+    category: categoryRecord
+      ? {
+          id: categoryRecord.id,
+          name: categoryRecord.data.name,
+          slug: categoryRecord.data.slug,
+          description: categoryRecord.data.description,
+          icon: categoryRecord.data.icon,
+          color: categoryRecord.data.color,
+          displayOrder: categoryRecord.data.displayOrder,
+          isActive: categoryRecord.data.isActive,
+          createdAt: new Date(categoryRecord.createdAt),
+          updatedAt: new Date(categoryRecord.updatedAt),
+        }
+      : null,
+  });
 
   // Parse screenshots from JSON string
   const screenshots = product.screenshots ? JSON.parse(product.screenshots) : [];

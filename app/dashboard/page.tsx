@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatDate } from "@/lib/utils";
 import { getCurrentUser } from "@/lib/auth/utils";
-import { getBuildsByUser } from "@/lib/db/queries/builds";
+import { getBuildsByUser } from "@/lib/buildstack/queries/builds";
 
 interface DashboardPageProps {
   searchParams: Promise<{ submitted?: string }>;
@@ -73,7 +73,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
           </CardHeader>
           <CardContent>
             <p className="text-lg font-semibold text-cyan-300">
-              {builds[0] ? formatDate(builds[0].createdAt) : "No builds yet"}
+              {builds[0] ? formatDate(new Date(builds[0].createdAt)) : "No builds yet"}
             </p>
           </CardContent>
         </Card>
@@ -132,9 +132,9 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
                   className="flex items-center justify-between gap-4 p-4 rounded-lg border border-zinc-800 bg-zinc-900/50"
                 >
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-medium text-white truncate">{build.idea}</h3>
+                    <h3 className="font-medium text-white truncate">{build.data.idea}</h3>
                     <p className="text-xs text-zinc-500 mt-1">
-                      Generated {formatDate(build.createdAt)}
+                      Generated {formatDate(new Date(build.createdAt))}
                     </p>
                   </div>
 

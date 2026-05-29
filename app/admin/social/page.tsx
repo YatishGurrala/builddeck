@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import {
   Share2,
   Twitter,
@@ -7,16 +6,14 @@ import {
   Clock,
   CheckCircle,
   XCircle,
-  AlertCircle,
   ArrowLeft,
-  RefreshCw,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { requireAdmin } from "@/lib/auth/utils";
-import { prisma } from "@/lib/db/prisma";
-import { formatDate } from "@/lib/utils";
+import { requireAdmin } from "@/lib/buildstack/auth";
+import { getSocialPosts } from "@/lib/buildstack/queries/social";
+import { getProductById } from "@/lib/buildstack/queries/products";
 import { SocialPostCard } from "./social-post-card";
 
 interface SocialPageProps {
@@ -29,40 +26,57 @@ export default async function SocialPage({ searchParams }: SocialPageProps) {
   // Verify admin access
   await requireAdmin();
 
-  // Build filter
-  const where: { status?: string; platform?: string } = {};
-  if (params.status) {
-    where.status = params.status.toUpperCase();
-  }
-  if (params.platform) {
-    where.platform = params.platform.toUpperCase();
-  }
+  const statusFilter = params.status?.toUpperCase();
+  const platformFilter = params.platform?.toUpperCase() as "X" | "LINKEDIN" | undefined;
 
-  // Fetch social posts with product info
-  const posts = await prisma.socialPost.findMany({
-    where,
-    include: {
-      product: {
-        select: {
-          id: true,
-          name: true,
-          slug: true,
-          tagline: true,
-          logoUrl: true,
-          websiteUrl: true,
-        },
-      },
-    },
-    orderBy: { createdAt: "desc" },
-  });
-
-  // Get stats
-  const [draftCount, publishedCount, failedCount, totalCount] = await Promise.all([
-    prisma.socialPost.count({ where: { status: "DRAFT" } }),
-    prisma.socialPost.count({ where: { status: "PUBLISHED" } }),
-    prisma.socialPost.count({ where: { status: "FAILED" } }),
-    prisma.socialPost.count(),
+  const [allPosts, filteredPosts] = await Promise.all([
+    getSocialPosts(),
+    getSocialPosts({
+      status: statusFilter,
+      platform: platformFilter,
+    }),
   ]);
+
+  const draftCount = allPosts.filter((p) => p.data.status === "DRAFT").length;
+  const publishedCount = allPosts.filter((p) => p.data.status === "PUBLISHED").length;
+  const failedCount = allPosts.filter((p) => p.data.status === "FAILED").length;
+  const totalCount = allPosts.length;
+
+  // Enrich posts with product data for SocialPostCard
+  const postsWithProducts = await Promise.all(
+    filteredPosts.map(async (post) => {
+      const productRecord = await getProductById(post.data.productId);
+      return {
+        id: post.id,
+        platform: post.data.platform,
+        content: post.data.content,
+        status: post.data.status,
+        productId: post.data.productId,
+        publishedAt: post.data.publishedAt ? new Date(post.data.publishedAt) : null,
+        publishedId: post.data.publishedId,
+        errorMessage: post.data.errorMessage,
+        createdAt: new Date(post.createdAt),
+        updatedAt: new Date(post.updatedAt),
+        product: productRecord
+          ? {
+              id: productRecord.id,
+              name: productRecord.data.name,
+              slug: productRecord.data.slug,
+              tagline: productRecord.data.tagline,
+              logoUrl: productRecord.data.logoUrl,
+              websiteUrl: productRecord.data.websiteUrl,
+            }
+          : {
+              id: post.data.productId,
+              name: "Unknown Product",
+              slug: "",
+              tagline: "",
+              logoUrl: null,
+              websiteUrl: null,
+            },
+      };
+    })
+  );
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -171,7 +185,7 @@ export default async function SocialPage({ searchParams }: SocialPageProps) {
       </div>
 
       {/* Posts List */}
-      {posts.length === 0 ? (
+      {postsWithProducts.length === 0 ? (
         <Card>
           <CardContent className="py-16 text-center">
             <Share2 className="h-12 w-12 text-zinc-600 mx-auto mb-4" />
@@ -185,7 +199,7 @@ export default async function SocialPage({ searchParams }: SocialPageProps) {
         </Card>
       ) : (
         <div className="space-y-4">
-          {posts.map((post) => (
+          {postsWithProducts.map((post) => (
             <SocialPostCard key={post.id} post={post} />
           ))}
         </div>

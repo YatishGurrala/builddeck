@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getCategoriesWithProductCount } from "@/lib/db/queries/categories";
+import { getCategoriesWithProductCount } from "@/lib/buildstack/queries/categories";
 import { Card, CardContent } from "@/components/ui/card";
 import { ArrowRight } from "lucide-react";
 

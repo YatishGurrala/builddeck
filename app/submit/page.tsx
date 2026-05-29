@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { ProductForm } from "@/components/forms/product-form";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { getAllCategories } from "@/lib/db/queries/categories";
+import { getAllCategories, toCategory } from "@/lib/buildstack/queries/categories";
 import { getCurrentUser } from "@/lib/auth/utils";
 
 export default async function SubmitPage() {
@@ -10,7 +10,8 @@ export default async function SubmitPage() {
     redirect("/auth/login");
   }
 
-  const categories = await getAllCategories();
+  const categoryRecords = await getAllCategories();
+  const categories = categoryRecords.map(toCategory);
 
   return (
     <div className="container mx-auto px-4 py-12">

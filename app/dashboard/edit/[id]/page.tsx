@@ -2,8 +2,8 @@ import { notFound, redirect } from "next/navigation";
 import { ProductForm } from "@/components/forms/product-form";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { getCurrentUser } from "@/lib/auth/utils";
-import { getProductById } from "@/lib/db/queries/products";
-import { getAllCategories } from "@/lib/db/queries/categories";
+import { getProductById, toProduct } from "@/lib/buildstack/queries/products";
+import { getAllCategories, toCategory } from "@/lib/buildstack/queries/categories";
 import type { Product } from "@/types";
 
 interface EditProductPageProps {
@@ -18,13 +18,15 @@ export default async function EditProductPage({ params }: EditProductPageProps) 
     redirect("/auth/login");
   }
 
-  const product = await getProductById(id);
+  const productRecord = await getProductById(id);
 
-  if (!product || product.userId !== user.id) {
+  if (!productRecord || productRecord.data.userId !== user.id) {
     notFound();
   }
 
-  const categories = await getAllCategories();
+  const product = toProduct(productRecord);
+  const categoryRecords = await getAllCategories();
+  const categories = categoryRecords.map(toCategory);
 
   return (
     <div className="container mx-auto px-4 py-12">
@@ -38,7 +40,7 @@ export default async function EditProductPage({ params }: EditProductPageProps) 
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <ProductForm categories={categories || []} product={product as unknown as Product} />
+            <ProductForm categories={categories || []} product={product} />
           </CardContent>
         </Card>
       </div>

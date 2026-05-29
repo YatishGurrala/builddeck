@@ -1,5 +1,6 @@
-import { getToken } from "next-auth/jwt";
 import { NextRequest, NextResponse } from "next/server";
+
+const SESSION_COOKIE = "bs_session";
 
 // Routes that require authentication
 const protectedRoutes = ["/dashboard", "/submit"];
@@ -18,11 +19,22 @@ const mvpLockedRoutes = [
   "/newsletter",
 ];
 
+function decodeSessionToken(token: string) {
+  try {
+    const [, payload] = token.split(".");
+    const json = atob(payload.replace(/-/g, "+").replace(/_/g, "/"));
+    return JSON.parse(json) as Record<string, unknown>;
+  } catch {
+    return null;
+  }
+}
+
 export default async function middleware(req: NextRequest) {
   const { nextUrl } = req;
-  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
-  const isLoggedIn = !!token;
-  const isAdmin = token?.role === "ADMIN";
+  const rawToken = req.cookies.get(SESSION_COOKIE)?.value;
+  const payload = rawToken ? decodeSessionToken(rawToken) : null;
+  const isLoggedIn = !!(payload && (payload.exp as number) > Date.now() / 1000);
+  const isAdmin = (payload?.metadata as Record<string, unknown>)?.role === "ADMIN";
 
   // Hide non-MVP routes from all users during first release
   if (mvpLockedRoutes.some((route) => nextUrl.pathname.startsWith(route))) {

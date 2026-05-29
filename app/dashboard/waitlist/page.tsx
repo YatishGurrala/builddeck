@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatDate } from "@/lib/utils";
 import { getCurrentUser } from "@/lib/auth/utils";
-import { getWaitlistLeadCount, getWaitlistLeads } from "@/lib/db/queries/waitlist";
+import { getWaitlistLeadCount, getWaitlistLeads } from "@/lib/buildstack/queries/waitlist";
 
 export default async function WaitlistDashboardPage() {
   const user = await getCurrentUser();
@@ -58,9 +58,9 @@ export default async function WaitlistDashboardPage() {
                 <tbody>
                   {leads.map((lead) => (
                     <tr key={lead.id} className="border-b border-zinc-900/80">
-                      <td className="py-3 pr-4 text-sm text-white">{lead.email}</td>
-                      <td className="py-3 pr-4 text-sm text-zinc-300">{lead.source || "-"}</td>
-                      <td className="py-3 text-sm text-zinc-400">{formatDate(lead.createdAt)}</td>
+                      <td className="py-3 pr-4 text-sm text-white">{lead.data.email}</td>
+                      <td className="py-3 pr-4 text-sm text-zinc-300">{lead.data.source || "-"}</td>
+                      <td className="py-3 text-sm text-zinc-400">{formatDate(new Date(lead.createdAt))}</td>
                     </tr>
                   ))}
                 </tbody>

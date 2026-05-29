@@ -1,6 +1,17 @@
-import { prisma } from "@/lib/db/prisma";
 import { XProvider, LinkedInProvider } from "./providers";
 import { generateDrafts } from "./draft-generator";
+import {
+  createSocialPost,
+  getSocialPosts as bsGetSocialPosts,
+  getSocialPostsByProduct,
+  getSocialPostById,
+  updateSocialPostContent,
+  updateSocialPostStatus,
+  deleteSocialPostById,
+  deleteSocialPostsByProduct,
+} from "@/lib/buildstack/queries/social";
+import { getProductById } from "@/lib/buildstack/queries/products";
+import { getCategoryById } from "@/lib/buildstack/queries/categories";
 import type { SocialPlatform, SocialProvider, PublishResult } from "./types";
 
 // Initialize providers
@@ -14,39 +25,37 @@ const providers: Record<SocialPlatform, SocialProvider> = {
  * Called when a product is approved
  */
 export async function createDraftsForProduct(productId: string) {
-  // Get the product with its category
-  const product = await prisma.product.findUnique({
-    where: { id: productId },
-    include: { category: true },
-  });
-  
-  if (!product) {
+  const productRecord = await getProductById(productId);
+  if (!productRecord) {
     throw new Error(`Product not found: ${productId}`);
   }
-  
-  // Generate drafts for each platform
+
+  const categoryRecord = productRecord.data.categoryId
+    ? await getCategoryById(productRecord.data.categoryId)
+    : null;
+
   const drafts = generateDrafts({
-    name: product.name,
-    tagline: product.tagline,
-    description: product.description,
-    websiteUrl: product.websiteUrl,
-    category: product.category,
+    name: productRecord.data.name,
+    tagline: productRecord.data.tagline,
+    description: productRecord.data.description,
+    websiteUrl: productRecord.data.websiteUrl,
+    category: categoryRecord ? { name: categoryRecord.data.name } : null,
   });
-  
-  // Store drafts in database
+
   const socialPosts = await Promise.all(
-    drafts.map(draft =>
-      prisma.socialPost.create({
-        data: {
-          platform: draft.platform,
-          content: draft.content,
-          status: "DRAFT",
-          productId: product.id,
-        },
+    drafts.map((draft) =>
+      createSocialPost({
+        platform: draft.platform,
+        content: draft.content,
+        status: "DRAFT",
+        productId,
+        publishedAt: null,
+        publishedId: null,
+        errorMessage: null,
       })
     )
   );
-  
+
   return socialPosts;
 }
 
@@ -54,10 +63,7 @@ export async function createDraftsForProduct(productId: string) {
  * Get all social posts for a product
  */
 export async function getSocialPostsForProduct(productId: string) {
-  return prisma.socialPost.findMany({
-    where: { productId },
-    orderBy: { createdAt: "desc" },
-  });
+  return getSocialPostsByProduct(productId);
 }
 
 /**
@@ -67,95 +73,54 @@ export async function getAllSocialPosts(options?: {
   status?: string;
   platform?: SocialPlatform;
 }) {
-  const where: { status?: string; platform?: string } = {};
-  
-  if (options?.status) {
-    where.status = options.status;
-  }
-  
-  if (options?.platform) {
-    where.platform = options.platform;
-  }
-  
-  return prisma.socialPost.findMany({
-    where,
-    include: {
-      product: {
-        select: {
-          id: true,
-          name: true,
-          slug: true,
-          tagline: true,
-          logoUrl: true,
-        },
-      },
-    },
-    orderBy: { createdAt: "desc" },
-  });
+  return bsGetSocialPosts(options);
 }
 
 /**
  * Update a social post's content
  */
 export async function updateSocialPost(postId: string, content: string) {
-  return prisma.socialPost.update({
-    where: { id: postId },
-    data: { content },
-  });
+  return updateSocialPostContent(postId, content);
 }
 
 /**
  * Publish a social post to its platform
  */
 export async function publishSocialPost(postId: string): Promise<PublishResult> {
-  // Get the post
-  const post = await prisma.socialPost.findUnique({
-    where: { id: postId },
-  });
-  
+  const post = await getSocialPostById(postId);
+
   if (!post) {
     return { success: false, error: "Post not found" };
   }
-  
-  if (post.status === "PUBLISHED") {
+
+  if (post.data.status === "PUBLISHED") {
     return { success: false, error: "Post already published" };
   }
-  
-  // Get the provider
-  const provider = providers[post.platform as SocialPlatform];
-  
+
+  const provider = providers[post.data.platform as SocialPlatform];
+
   if (!provider) {
-    return { success: false, error: `Unknown platform: ${post.platform}` };
+    return { success: false, error: `Unknown platform: ${post.data.platform}` };
   }
-  
+
   if (!provider.isConfigured()) {
-    return { success: false, error: `${post.platform} provider is not configured` };
+    return { success: false, error: `${post.data.platform} provider is not configured` };
   }
-  
-  // Attempt to publish
-  const result = await provider.publish(post.content);
-  
-  // Update post status
+
+  const result = await provider.publish(post.data.content);
+
   if (result.success) {
-    await prisma.socialPost.update({
-      where: { id: postId },
-      data: {
-        status: "PUBLISHED",
-        publishedAt: new Date(),
-        publishedId: result.postId,
-        errorMessage: null,
-      },
+    await updateSocialPostStatus(postId, "PUBLISHED", {
+      publishedAt: new Date().toISOString(),
+      publishedId: result.postId,
+      errorMessage: undefined,
     });
   } else {
-    await prisma.socialPost.update({
-      where: { id: postId },
-      data: {
-        status: "FAILED",
-        errorMessage: result.error,
-      },
+    await updateSocialPostStatus(postId, "FAILED", {
+      errorMessage: result.error,
     });
   }
-  
+
   return result;
 }
 
@@ -163,24 +128,14 @@ export async function publishSocialPost(postId: string): Promise<PublishResult> 
  * Delete a social post
  */
 export async function deleteSocialPost(postId: string) {
-  return prisma.socialPost.delete({
-    where: { id: postId },
-  });
+  return deleteSocialPostById(postId);
 }
 
 /**
  * Regenerate drafts for a product (delete existing drafts and create new ones)
  */
 export async function regenerateDrafts(productId: string) {
-  // Delete existing draft posts (not published ones)
-  await prisma.socialPost.deleteMany({
-    where: {
-      productId,
-      status: "DRAFT",
-    },
-  });
-  
-  // Create new drafts
+  await deleteSocialPostsByProduct(productId, "DRAFT");
   return createDraftsForProduct(productId);
 }
 

@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { Search, SlidersHorizontal } from "lucide-react";
 import { ProductGrid } from "@/components/product/product-grid";
-import { getAllCategories, getCategoryBySlug } from "@/lib/db/queries/categories";
-import { getProducts, getFeaturedProducts } from "@/lib/db/queries/products";
+import { getAllCategories, getCategoryBySlug, toCategory } from "@/lib/buildstack/queries/categories";
+import { getProducts, getFeaturedProducts, toProduct } from "@/lib/buildstack/queries/products";
 import { Category, Product } from "@/types";
 
 interface ProductsPageProps {
@@ -13,26 +13,29 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
   const params = await searchParams;
 
   // Fetch categories for filters
-  const categories = await getAllCategories();
+  const categoryRecords = await getAllCategories();
+  const categories = categoryRecords.map(toCategory);
 
   // Fetch products with filters
-  let products;
+  let productRecords;
   
   if (params.featured === "true") {
-    products = await getFeaturedProducts();
+    productRecords = await getFeaturedProducts();
   } else if (params.category) {
     const category = await getCategoryBySlug(params.category);
     if (category) {
       const result = await getProducts({ filters: { categoryId: category.id, status: "APPROVED" } });
-      products = result.data;
+      productRecords = result.data;
     } else {
       const result = await getProducts({ filters: { status: "APPROVED" } });
-      products = result.data;
+      productRecords = result.data;
     }
   } else {
     const result = await getProducts({ filters: { status: "APPROVED" } });
-    products = result.data;
+    productRecords = result.data;
   }
+
+  const products = productRecords.map((r) => toProduct(r));
 
   return (
     <div className="pt-32 pb-24 px-8 max-w-7xl mx-auto">
