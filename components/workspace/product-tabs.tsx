@@ -19,15 +19,15 @@ export function ProductTabs({ overview, roadmap, tasks, docs }: ProductTabsProps
 
   return (
     <div>
-      <div className="flex gap-0 border-b border-[var(--surface-container-high)] mb-6">
+      <div className="flex gap-6 border-b border-[#27272a] mb-6">
         {TABS.map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors -mb-px ${
+            className={`pb-3 text-sm transition-colors ws-label ${
               activeTab === tab
-                ? "border-[var(--primary)] text-[var(--primary)]"
-                : "border-transparent text-[var(--on-surface-variant)] hover:text-[var(--on-surface)]"
+                ? "border-b-2 border-white text-white"
+                : "text-[#a1a1aa] hover:text-[#e5e1e4]"
             }`}
           >
             {tab}

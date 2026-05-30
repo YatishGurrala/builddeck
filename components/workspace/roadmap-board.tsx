@@ -2,10 +2,6 @@
 
 import { useState, useTransition } from "react";
 import { Plus, Trash2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { StatusBadge } from "@/components/workspace/status-badge";
 import {
   createRoadmapItemAction,
   updateRoadmapItemAction,
@@ -22,10 +18,10 @@ interface RoadmapItem {
   order: number;
 }
 
-const COLUMNS: { status: RoadmapStatus; label: string }[] = [
-  { status: "PLANNED", label: "Planned" },
-  { status: "IN_PROGRESS", label: "In Progress" },
-  { status: "COMPLETED", label: "Completed" },
+const COLUMNS: { status: RoadmapStatus; label: string; color: string }[] = [
+  { status: "PLANNED", label: "Planned", color: "#a1a1aa" },
+  { status: "IN_PROGRESS", label: "In Progress", color: "#6366f1" },
+  { status: "COMPLETED", label: "Completed", color: "#22c55e" },
 ];
 
 interface RoadmapBoardProps {
@@ -71,57 +67,51 @@ export function RoadmapBoard({ productId, items }: RoadmapBoardProps) {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-      {COLUMNS.map(({ status, label }) => (
-        <div
-          key={status}
-          className="rounded-xl border border-[var(--surface-container-high)] bg-[var(--surface-container-low)] p-4"
-        >
-          <div className="flex items-center justify-between mb-3">
+      {COLUMNS.map(({ status, label, color }) => (
+        <div key={status} className="flex flex-col gap-2">
+          {/* Column header */}
+          <div className="flex items-center justify-between mb-1">
             <div className="flex items-center gap-2">
-              <StatusBadge status={status} />
-              <span className="text-xs text-[var(--on-surface-variant)]">
-                {itemsByStatus(status).length}
-              </span>
+              <div className="w-2 h-2 rounded-full" style={{ backgroundColor: color }} />
+              <span className="text-[#e5e1e4] text-xs ws-label font-semibold uppercase tracking-wider">{label}</span>
+              <span className="text-[#a1a1aa] text-xs ws-label">({itemsByStatus(status).length})</span>
             </div>
             <button
               onClick={() => setAddingTo(status)}
-              className="text-[var(--on-surface-variant)] hover:text-[var(--primary)] transition-colors"
+              className="text-[#a1a1aa] hover:text-[#e5e1e4] transition-colors"
               title="Add item"
             >
-              <Plus className="h-4 w-4" />
+              <Plus className="h-3.5 w-3.5" />
             </button>
           </div>
 
+          {/* Cards */}
           <div className="space-y-2">
             {itemsByStatus(status).map((item) => (
               <div
                 key={item.id}
-                className="rounded-lg border border-[var(--surface-container-high)] bg-[var(--surface)] p-3 group"
+                className="bg-[#131315] border border-[#27272a] p-3 rounded cursor-pointer hover:border-[#444748] transition-colors group"
               >
                 <div className="flex items-start justify-between gap-2">
-                  <p className="text-sm font-medium text-[var(--on-surface)] flex-1">
-                    {item.title}
-                  </p>
+                  <p className="text-sm font-medium text-[#e5e1e4] flex-1">{item.title}</p>
                   <button
                     onClick={() => handleDelete(item.id)}
-                    className="opacity-0 group-hover:opacity-100 text-[var(--on-surface-variant)] hover:text-red-500 transition-all"
+                    className="opacity-0 group-hover:opacity-100 text-[#a1a1aa] hover:text-red-400 transition-all shrink-0"
                     disabled={isPending}
                   >
                     <Trash2 className="h-3.5 w-3.5" />
                   </button>
                 </div>
                 {item.description && (
-                  <p className="text-xs text-[var(--on-surface-variant)] mt-1 line-clamp-2">
-                    {item.description}
-                  </p>
+                  <p className="text-xs text-[#a1a1aa] mt-1 line-clamp-2">{item.description}</p>
                 )}
-                <div className="flex gap-1 mt-2">
+                <div className="flex gap-1 mt-2 flex-wrap">
                   {COLUMNS.filter((c) => c.status !== status).map((c) => (
                     <button
                       key={c.status}
                       onClick={() => handleStatusChange(item, c.status)}
                       disabled={isPending}
-                      className="text-xs text-[var(--on-surface-variant)] hover:text-[var(--primary)] transition-colors"
+                      className="bg-[#2a2a2c] text-[#a1a1aa] px-2 py-0.5 rounded text-[10px] ws-label hover:text-[#e5e1e4] transition-colors"
                     >
                       → {c.label}
                     </button>
@@ -131,36 +121,35 @@ export function RoadmapBoard({ productId, items }: RoadmapBoardProps) {
             ))}
 
             {addingTo === status && (
-              <div className="rounded-lg border border-[var(--primary)] bg-[var(--surface)] p-3 space-y-2">
-                <Input
+              <div className="border border-[#6366f1] bg-[#131315] p-3 rounded space-y-2">
+                <input
                   placeholder="Item title"
                   value={newTitle}
                   onChange={(e) => setNewTitle(e.target.value)}
                   autoFocus
-                  className="text-sm h-8"
+                  className="w-full bg-[#1c1b1d] border border-[#27272a] text-[#e5e1e4] rounded px-3 py-2 text-sm focus:border-[#6366f1] focus:outline-none"
                 />
-                <Textarea
+                <textarea
                   placeholder="Description (optional)"
                   value={newDesc}
                   onChange={(e) => setNewDesc(e.target.value)}
                   rows={2}
-                  className="text-sm resize-none"
+                  className="w-full bg-[#1c1b1d] border border-[#27272a] text-[#e5e1e4] rounded px-3 py-2 text-sm resize-none focus:border-[#6366f1] focus:outline-none"
                 />
                 <div className="flex gap-2">
-                  <Button
-                    size="sm"
+                  <button
                     onClick={() => handleAddItem(status)}
                     disabled={isPending || !newTitle.trim()}
+                    className="bg-white text-[#131315] px-3 py-1 rounded text-xs font-mono tracking-wider hover:bg-[#e2e2e2] disabled:opacity-50 transition-colors"
                   >
                     Add
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
+                  </button>
+                  <button
                     onClick={() => { setAddingTo(null); setNewTitle(""); setNewDesc(""); }}
+                    className="bg-[#1c1b1d] border border-[#27272a] text-[#a1a1aa] px-3 py-1 rounded text-xs font-mono tracking-wider hover:text-[#e5e1e4] transition-colors"
                   >
                     Cancel
-                  </Button>
+                  </button>
                 </div>
               </div>
             )}

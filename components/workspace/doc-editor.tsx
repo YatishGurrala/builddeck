@@ -2,9 +2,6 @@
 
 import { useState, useTransition } from "react";
 import { Plus, FileText, Trash2, Save } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import {
   createWorkspaceDocAction,
   updateWorkspaceDocAction,
@@ -77,30 +74,28 @@ export function DocEditor({ productId, docs }: DocEditorProps) {
   return (
     <div className="flex gap-4 h-[500px]">
       {/* Doc list sidebar */}
-      <div className="w-52 shrink-0 border-r border-[var(--surface-container-high)] pr-4 flex flex-col gap-2">
-        <Button
-          size="sm"
-          variant="outline"
+      <div className="w-52 shrink-0 border-r border-[#27272a] pr-4 flex flex-col gap-2">
+        <button
           onClick={() => setIsCreating(true)}
-          className="w-full justify-start gap-2"
+          className="flex items-center gap-2 w-full px-3 py-1.5 bg-[#1c1b1d] border border-[#27272a] text-[#a1a1aa] rounded text-xs font-mono tracking-wider hover:text-[#e5e1e4] hover:border-[#444748] transition-colors"
         >
           <Plus className="h-3.5 w-3.5" />
           New Doc
-        </Button>
+        </button>
 
         {isCreating && (
           <div className="space-y-1.5">
-            <Input
+            <input
               autoFocus
               placeholder="Doc title"
               value={newTitle}
               onChange={(e) => setNewTitle(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Enter") handleCreate(); if (e.key === "Escape") setIsCreating(false); }}
-              className="h-7 text-xs"
+              className="w-full bg-[#1c1b1d] border border-[#27272a] text-[#e5e1e4] rounded px-2 py-1 text-xs focus:border-[#6366f1] focus:outline-none"
             />
             <div className="flex gap-1">
-              <Button size="sm" className="h-6 text-xs px-2" onClick={handleCreate} disabled={!newTitle.trim()}>Create</Button>
-              <Button size="sm" variant="outline" className="h-6 text-xs px-2" onClick={() => setIsCreating(false)}>Cancel</Button>
+              <button onClick={handleCreate} disabled={!newTitle.trim()} className="bg-white text-[#131315] px-2 py-0.5 rounded text-xs font-mono hover:bg-[#e2e2e2] disabled:opacity-50 transition-colors">Create</button>
+              <button onClick={() => setIsCreating(false)} className="bg-[#1c1b1d] border border-[#27272a] text-[#a1a1aa] px-2 py-0.5 rounded text-xs font-mono hover:text-[#e5e1e4] transition-colors">Cancel</button>
             </div>
           </div>
         )}
@@ -109,10 +104,10 @@ export function DocEditor({ productId, docs }: DocEditorProps) {
           {docs.map((doc) => (
             <div
               key={doc.id}
-              className={`group flex items-center gap-2 rounded-md px-2 py-1.5 cursor-pointer transition-colors ${
+              className={`group flex items-center gap-2 rounded px-2 py-1.5 cursor-pointer transition-colors ${
                 selectedDoc?.id === doc.id
-                  ? "bg-[var(--primary)] text-white"
-                  : "hover:bg-[var(--surface-container)] text-[var(--on-surface)]"
+                  ? "bg-[#2a2a2c] text-white"
+                  : "hover:bg-[#1c1b1d] text-[#a1a1aa]"
               }`}
               onClick={() => selectDoc(doc)}
             >
@@ -121,14 +116,14 @@ export function DocEditor({ productId, docs }: DocEditorProps) {
               <button
                 onClick={(e) => { e.stopPropagation(); handleDelete(doc.id); }}
                 disabled={isPending}
-                className={`opacity-0 group-hover:opacity-100 transition-opacity hover:text-red-400 ${selectedDoc?.id === doc.id ? "text-white/70" : "text-[var(--on-surface-variant)]"}`}
+                className={`opacity-0 group-hover:opacity-100 transition-opacity hover:text-red-400 ${selectedDoc?.id === doc.id ? "text-[#a1a1aa]" : "text-[#444748]"}`}
               >
                 <Trash2 className="h-3 w-3" />
               </button>
             </div>
           ))}
           {docs.length === 0 && !isCreating && (
-            <p className="text-xs text-[var(--on-surface-variant)] px-2 py-4 text-center">
+            <p className="text-xs text-[#a1a1aa] px-2 py-4 text-center ws-label">
               No docs yet
             </p>
           )}
@@ -140,39 +135,38 @@ export function DocEditor({ productId, docs }: DocEditorProps) {
         {selectedDoc ? (
           <>
             <div className="flex items-center justify-between gap-3 mb-3">
-              <Input
+              <input
                 value={editTitle}
                 onChange={(e) => { setEditTitle(e.target.value); setIsDirty(true); }}
-                className="font-semibold text-base border-none shadow-none px-0 focus-visible:ring-0"
+                className="flex-1 bg-transparent border-none text-[#e5e1e4] font-semibold text-base focus:outline-none"
               />
               <div className="flex items-center gap-2 shrink-0">
                 {isDirty && (
-                  <span className="text-xs text-[var(--on-surface-variant)]">Unsaved</span>
+                  <span className="text-xs text-[#a1a1aa] ws-label">Unsaved</span>
                 )}
-                <Button
-                  size="sm"
+                <button
                   onClick={handleSave}
                   disabled={isPending || !isDirty}
-                  className="gap-1.5"
+                  className="flex items-center gap-1.5 bg-white text-[#131315] px-3 py-1 rounded text-xs font-mono tracking-wider hover:bg-[#e2e2e2] disabled:opacity-50 transition-colors"
                 >
                   <Save className="h-3.5 w-3.5" />
                   {isPending ? "Saving..." : "Save"}
-                </Button>
+                </button>
               </div>
             </div>
-            <p className="text-xs text-[var(--on-surface-variant)] mb-2">
+            <p className="text-xs text-[#a1a1aa] ws-label mb-2">
               Last updated {formatDate(selectedDoc.updatedAt)}
             </p>
-            <Textarea
+            <textarea
               value={editContent}
               onChange={(e) => { setEditContent(e.target.value); setIsDirty(true); }}
               placeholder="Start writing your notes here..."
-              className="flex-1 resize-none font-mono text-sm leading-relaxed"
+              className="flex-1 resize-none bg-[#1c1b1d] border border-[#27272a] text-[#e5e1e4] rounded px-3 py-2 text-sm font-mono leading-relaxed focus:border-[#6366f1] focus:outline-none placeholder-[#444748]"
             />
           </>
         ) : (
           <div className="flex-1 flex items-center justify-center">
-            <p className="text-sm text-[var(--on-surface-variant)]">
+            <p className="text-sm text-[#a1a1aa] ws-label">
               Select a doc or create a new one
             </p>
           </div>

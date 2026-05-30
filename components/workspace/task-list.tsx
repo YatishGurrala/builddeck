@@ -2,8 +2,6 @@
 
 import { useState, useTransition } from "react";
 import { Plus, Trash2, Circle, CheckCircle2, AlertCircle, Clock } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { StatusBadge } from "@/components/workspace/status-badge";
 import {
   createWorkspaceTaskAction,
@@ -14,10 +12,10 @@ import {
 type TaskStatus = "TODO" | "IN_PROGRESS" | "DONE" | "BLOCKED";
 
 const statusIcon: Record<TaskStatus, React.ReactNode> = {
-  TODO: <Circle className="h-4 w-4 text-zinc-400" />,
-  IN_PROGRESS: <Clock className="h-4 w-4 text-blue-500" />,
-  DONE: <CheckCircle2 className="h-4 w-4 text-green-500" />,
-  BLOCKED: <AlertCircle className="h-4 w-4 text-red-500" />,
+  TODO: <Circle className="h-4 w-4 text-[#a1a1aa]" />,
+  IN_PROGRESS: <Clock className="h-4 w-4 text-[#6366f1]" />,
+  DONE: <CheckCircle2 className="h-4 w-4 text-[#22c55e]" />,
+  BLOCKED: <AlertCircle className="h-4 w-4 text-[#ef4444]" />,
 };
 
 const STATUS_OPTIONS: TaskStatus[] = ["TODO", "IN_PROGRESS", "DONE", "BLOCKED"];
@@ -72,23 +70,27 @@ export function TaskList({ productId, tasks }: TaskListProps) {
   return (
     <div className="space-y-6">
       <div className="flex justify-end">
-        <Button size="sm" onClick={() => setIsAdding(true)} disabled={isAdding}>
-          <Plus className="h-4 w-4 mr-1" /> Add Task
-        </Button>
+        <button
+          onClick={() => setIsAdding(true)}
+          disabled={isAdding}
+          className="flex items-center gap-1 bg-white text-[#131315] px-3 py-1.5 rounded text-sm font-mono tracking-wider hover:bg-[#e2e2e2] disabled:opacity-50 transition-colors"
+        >
+          <Plus className="h-4 w-4" /> Add Task
+        </button>
       </div>
 
       {isAdding && (
-        <div className="flex gap-2 items-center p-3 rounded-lg border border-[var(--primary)] bg-[var(--surface)]">
-          <Input
+        <div className="flex gap-2 items-center p-3 rounded border border-[#6366f1] bg-[#131315]">
+          <input
             autoFocus
             placeholder="Task title"
             value={newTitle}
             onChange={(e) => setNewTitle(e.target.value)}
             onKeyDown={(e) => { if (e.key === "Enter") handleAdd(); if (e.key === "Escape") { setIsAdding(false); setNewTitle(""); } }}
-            className="h-8 text-sm"
+            className="flex-1 bg-[#1c1b1d] border border-[#27272a] text-[#e5e1e4] rounded px-3 py-1.5 text-sm focus:border-[#6366f1] focus:outline-none"
           />
-          <Button size="sm" onClick={handleAdd} disabled={isPending || !newTitle.trim()}>Add</Button>
-          <Button size="sm" variant="outline" onClick={() => { setIsAdding(false); setNewTitle(""); }}>Cancel</Button>
+          <button onClick={handleAdd} disabled={isPending || !newTitle.trim()} className="bg-white text-[#131315] px-3 py-1.5 rounded text-sm font-mono hover:bg-[#e2e2e2] disabled:opacity-50 transition-colors">Add</button>
+          <button onClick={() => { setIsAdding(false); setNewTitle(""); }} className="bg-[#1c1b1d] border border-[#27272a] text-[#a1a1aa] px-3 py-1.5 rounded text-sm font-mono hover:text-[#e5e1e4] transition-colors">Cancel</button>
         </div>
       )}
 
@@ -99,33 +101,33 @@ export function TaskList({ productId, tasks }: TaskListProps) {
           <div key={status}>
             <div className="flex items-center gap-2 mb-2">
               {statusIcon[status]}
-              <span className="text-sm font-medium text-[var(--on-surface)]">
+              <span className="text-sm font-medium text-[#e5e1e4]">
                 <StatusBadge status={status} />
               </span>
-              <span className="text-xs text-[var(--on-surface-variant)]">({group.length})</span>
+              <span className="text-xs text-[#a1a1aa] ws-label">({group.length})</span>
             </div>
             <div className="space-y-1.5 pl-6">
               {group.map((task) => (
                 <div
                   key={task.id}
-                  className="group flex items-center gap-3 rounded-lg px-3 py-2 hover:bg-[var(--surface-container)] transition-colors"
+                  className="group flex items-center gap-3 rounded px-3 py-2 hover:bg-[#1c1b1d] transition-colors"
                 >
                   <select
                     value={task.status}
                     onChange={(e) => handleStatusChange(task, e.target.value as TaskStatus)}
                     disabled={isPending}
-                    className="text-xs rounded border-none bg-transparent text-[var(--on-surface-variant)] cursor-pointer focus:outline-none"
+                    className="text-xs rounded border-none bg-transparent text-[#a1a1aa] cursor-pointer focus:outline-none"
                   >
                     {STATUS_OPTIONS.map((s) => <option key={s} value={s}>{s.replace("_", " ")}</option>)}
                   </select>
-                  <span className={`flex-1 text-sm ${task.status === "DONE" ? "line-through text-[var(--on-surface-variant)]" : "text-[var(--on-surface)]"}`}>
+                  <span className={`flex-1 text-sm ${task.status === "DONE" ? "line-through text-[#444748]" : "text-[#e5e1e4]"}`}>
                     {task.title}
                   </span>
                   <StatusBadge status={task.priority} className="opacity-0 group-hover:opacity-100 transition-opacity" />
                   <button
                     onClick={() => handleDelete(task.id)}
                     disabled={isPending}
-                    className="opacity-0 group-hover:opacity-100 text-[var(--on-surface-variant)] hover:text-red-500 transition-all"
+                    className="opacity-0 group-hover:opacity-100 text-[#a1a1aa] hover:text-red-400 transition-all"
                   >
                     <Trash2 className="h-3.5 w-3.5" />
                   </button>
@@ -137,7 +139,7 @@ export function TaskList({ productId, tasks }: TaskListProps) {
       })}
 
       {tasks.length === 0 && !isAdding && (
-        <p className="text-sm text-center text-[var(--on-surface-variant)] py-8">
+        <p className="text-sm text-center text-[#a1a1aa] ws-label py-8">
           No tasks yet. Add your first task to get started.
         </p>
       )}

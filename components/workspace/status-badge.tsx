@@ -8,27 +8,27 @@ type StatusVariant =
   | "DISCOVERY" | "VALIDATION" | "BETA";
 
 const variantStyles: Record<string, string> = {
-  IDEA: "bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300",
-  BUILDING: "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300",
-  LAUNCHED: "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300",
-  PAUSED: "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300",
-  ARCHIVED: "bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-500",
+  IDEA: "bg-[#2a2a2c] text-[#a1a1aa]",
+  BUILDING: "bg-[#1e2c4a] text-[#6366f1]",
+  LAUNCHED: "bg-[#0f2a1f] text-[#22c55e]",
+  PAUSED: "bg-[#2a1a1a] text-[#f59e0b]",
+  ARCHIVED: "bg-[#2a2a2c] text-[#444748]",
 
-  TODO: "bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300",
-  IN_PROGRESS: "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300",
-  DONE: "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300",
-  BLOCKED: "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300",
+  TODO: "bg-[#2a2a2c] text-[#a1a1aa]",
+  IN_PROGRESS: "bg-[#1e2c4a] text-[#6366f1]",
+  DONE: "bg-[#0f2a1f] text-[#22c55e]",
+  BLOCKED: "bg-[#2a1a1a] text-[#ef4444]",
 
-  PLANNED: "bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300",
-  COMPLETED: "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300",
+  PLANNED: "bg-[#2a2a2c] text-[#a1a1aa]",
+  COMPLETED: "bg-[#0f2a1f] text-[#22c55e]",
 
-  LOW: "bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400",
-  MEDIUM: "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300",
-  HIGH: "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300",
+  LOW: "bg-[#2a2a2c] text-[#a1a1aa]",
+  MEDIUM: "bg-yellow-900/20 text-yellow-400",
+  HIGH: "bg-red-900/20 text-red-400",
 
-  DISCOVERY: "bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300",
-  VALIDATION: "bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300",
-  BETA: "bg-cyan-100 text-cyan-700 dark:bg-cyan-900/40 dark:text-cyan-300",
+  DISCOVERY: "bg-[#2a2a2c] text-[#6366f1]",
+  VALIDATION: "bg-[#1e2c4a] text-[#818cf8]",
+  BETA: "bg-[#0f2a1f] text-[#34d399]",
 };
 
 const labelMap: Record<string, string> = {
@@ -57,12 +57,12 @@ interface StatusBadgeProps {
 }
 
 export function StatusBadge({ status, className }: StatusBadgeProps) {
-  const styles = variantStyles[status] ?? "bg-zinc-100 text-zinc-600";
+  const styles = variantStyles[status] ?? "bg-[#2a2a2c] text-[#a1a1aa]";
   const label = labelMap[status] ?? status;
   return (
     <span
       className={cn(
-        "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium",
+        "inline-flex items-center rounded px-2 py-0.5 text-xs ws-label",
         styles,
         className
       )}

@@ -8,8 +8,11 @@ export default async function NewProductPage() {
 
   return (
     <div className="p-6 max-w-2xl mx-auto">
-      <h1 className="text-2xl font-bold text-[var(--on-surface)] mb-6">New Product</h1>
-      <ProductForm mode="create" />
+      <h1 className="text-2xl font-bold text-white mb-2">New Product</h1>
+      <p className="text-[#a1a1aa] text-sm mb-6 ws-label">Add a new product to track its progress.</p>
+      <div className="bg-[#1c1b1d] border border-[#27272a] rounded-lg p-6">
+        <ProductForm mode="create" />
+      </div>
     </div>
   );
 }

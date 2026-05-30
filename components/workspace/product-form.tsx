@@ -2,10 +2,6 @@
 
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import {
   createWorkspaceProductAction,
   updateWorkspaceProductAction,
@@ -41,99 +37,93 @@ export function ProductForm({ mode, productId, defaultValues }: ProductFormProps
     });
   }
 
+  const labelClass = "block text-[#a1a1aa] text-xs font-mono tracking-wider uppercase mb-1";
+  const inputClass = "w-full bg-[#1c1b1d] border border-[#27272a] text-[#e5e1e4] rounded px-3 py-2 text-sm focus:border-[#6366f1] focus:outline-none placeholder-[#444748]";
+  const selectClass = "w-full bg-[#1c1b1d] border border-[#27272a] text-[#e5e1e4] rounded px-3 py-2 text-sm focus:border-[#6366f1] focus:outline-none";
+
   return (
-    <form action={handleSubmit} className="space-y-5 max-w-2xl">
-      <div className="space-y-1.5">
-        <Label htmlFor="name">Product Name *</Label>
-        <Input
-          id="name"
+    <form action={handleSubmit} className="space-y-5">
+      <div>
+        <label className={labelClass}>Product Name *</label>
+        <input
           name="name"
           placeholder="e.g. FounderOS"
           defaultValue={defaultValues?.name}
           required
+          className={inputClass}
         />
       </div>
 
-      <div className="space-y-1.5">
-        <Label htmlFor="tagline">Tagline</Label>
-        <Input
-          id="tagline"
+      <div>
+        <label className={labelClass}>Tagline</label>
+        <input
           name="tagline"
           placeholder="One sentence that describes your product"
           defaultValue={defaultValues?.tagline}
+          className={inputClass}
         />
       </div>
 
-      <div className="space-y-1.5">
-        <Label htmlFor="description">Description</Label>
-        <Textarea
-          id="description"
+      <div>
+        <label className={labelClass}>Description</label>
+        <textarea
           name="description"
           placeholder="What are you building and why?"
           rows={4}
           defaultValue={defaultValues?.description}
+          className={`${inputClass} resize-none`}
         />
       </div>
 
-      <div className="space-y-1.5">
-        <Label htmlFor="websiteUrl">Website URL</Label>
-        <Input
-          id="websiteUrl"
+      <div>
+        <label className={labelClass}>Website URL</label>
+        <input
           name="websiteUrl"
           type="url"
           placeholder="https://yourproduct.com"
           defaultValue={defaultValues?.websiteUrl}
+          className={inputClass}
         />
       </div>
 
       <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-1.5">
-          <Label htmlFor="status">Status</Label>
-          <select
-            id="status"
-            name="status"
-            defaultValue={defaultValues?.status ?? "IDEA"}
-            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          >
+        <div>
+          <label className={labelClass}>Status</label>
+          <select name="status" defaultValue={defaultValues?.status ?? "IDEA"} className={selectClass}>
             {PRODUCT_STATUSES.map((s) => (
-              <option key={s} value={s}>
-                {s.charAt(0) + s.slice(1).toLowerCase()}
-              </option>
+              <option key={s} value={s}>{s.charAt(0) + s.slice(1).toLowerCase()}</option>
             ))}
           </select>
         </div>
 
-        <div className="space-y-1.5">
-          <Label htmlFor="roadmapPhase">Roadmap Phase</Label>
-          <select
-            id="roadmapPhase"
-            name="roadmapPhase"
-            defaultValue={defaultValues?.roadmapPhase ?? "DISCOVERY"}
-            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          >
+        <div>
+          <label className={labelClass}>Roadmap Phase</label>
+          <select name="roadmapPhase" defaultValue={defaultValues?.roadmapPhase ?? "DISCOVERY"} className={selectClass}>
             {ROADMAP_PHASES.map((p) => (
-              <option key={p} value={p}>
-                {p.charAt(0) + p.slice(1).toLowerCase()}
-              </option>
+              <option key={p} value={p}>{p.charAt(0) + p.slice(1).toLowerCase()}</option>
             ))}
           </select>
         </div>
       </div>
 
       <div className="flex gap-3 pt-2">
-        <Button type="submit" disabled={isPending}>
+        <button
+          type="submit"
+          disabled={isPending}
+          className="bg-white text-[#131315] px-6 py-2 rounded hover:bg-[#e2e2e2] font-mono text-sm tracking-wider disabled:opacity-50 transition-colors"
+        >
           {isPending
             ? mode === "create" ? "Creating..." : "Saving..."
             : mode === "create" ? "Create Product" : "Save Changes"}
-        </Button>
-        <Button
+        </button>
+        <button
           type="button"
-          variant="outline"
           onClick={() => router.back()}
           disabled={isPending}
+          className="bg-[#1c1b1d] border border-[#27272a] text-[#a1a1aa] px-6 py-2 rounded hover:text-[#e5e1e4] hover:border-[#444748] font-mono text-sm tracking-wider disabled:opacity-50 transition-colors"
         >
           Cancel
-        </Button>
+        </button>
       </div>
     </form>
   );
