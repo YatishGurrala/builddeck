@@ -43,6 +43,18 @@ export async function Header() {
           </Link>
           {user ? (
             <>
+              <Link
+                href="/dashboard/workspace"
+                className="hidden md:inline text-[var(--on-surface-variant)] hover:text-[var(--on-surface)] transition-colors hover:border-b-2 hover:border-[#6366f1] pb-1 font-headline font-bold tracking-tight"
+              >
+                Workspace
+              </Link>
+              <Link
+                href="/dashboard"
+                className="hidden md:inline text-[var(--on-surface-variant)] hover:text-[var(--on-surface)] transition-colors hover:border-b-2 hover:border-[#0070F3] pb-1 font-headline font-bold tracking-tight"
+              >
+                Dashboard
+              </Link>
               {isAdmin && (
                 <Link href="/dashboard/waitlist">
                   <Button variant="outline" size="sm" className="border-[var(--outline)] text-[var(--on-surface-variant)] hover:text-[var(--on-surface)] hover:border-[#0070f3]">

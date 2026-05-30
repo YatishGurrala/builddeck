@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Plus, CheckCircle, ArrowRight } from "lucide-react";
+import { Plus, CheckCircle, ArrowRight, LayoutDashboard } from "lucide-react";
 import { redirect } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -53,6 +53,22 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
           </Link>
         </div>
       </div>
+
+      {/* Workspace entry point */}
+      <Link href="/dashboard/workspace" className="block mb-8 group">
+        <div className="flex items-center justify-between p-5 rounded-xl border border-[#27272a] bg-[#131315] hover:border-[#6366f1] hover:bg-[#1c1b1d] transition-all">
+          <div className="flex items-center gap-4">
+            <div className="w-10 h-10 rounded-lg bg-[#6366f1]/10 border border-[#6366f1]/30 flex items-center justify-center">
+              <LayoutDashboard className="h-5 w-5 text-[#818cf8]" />
+            </div>
+            <div>
+              <p className="text-white font-semibold">Founder Workspace</p>
+              <p className="text-zinc-500 text-sm">Manage products, tasks, roadmap &amp; docs</p>
+            </div>
+          </div>
+          <ArrowRight className="h-5 w-5 text-zinc-600 group-hover:text-[#818cf8] transition-colors" />
+        </div>
+      </Link>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         <Card>
