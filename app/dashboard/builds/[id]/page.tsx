@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatDate } from "@/lib/utils";
 import { getCurrentUser } from "@/lib/auth/utils";
-import { getBuildByIdForUser } from "@/lib/db/queries/builds";
+import { getBuildByIdForUser } from "@/lib/buildstack/queries/builds";
 
 type BuildOutput = {
   overview?: string;
@@ -33,7 +33,7 @@ export default async function BuildDetailPage({ params }: BuildDetailPageProps) 
     notFound();
   }
 
-  const output = build.output as BuildOutput;
+  const output = build.data.output as BuildOutput;
 
   return (
     <div className="container mx-auto px-4 py-12">
@@ -51,8 +51,8 @@ export default async function BuildDetailPage({ params }: BuildDetailPageProps) 
           <CardTitle className="text-white">Build Idea</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-zinc-200">{build.idea}</p>
-          <p className="mt-2 text-xs text-zinc-500">Generated {formatDate(build.createdAt)}</p>
+          <p className="text-zinc-200">{build.data.idea}</p>
+          <p className="mt-2 text-xs text-zinc-500">Generated {formatDate(new Date(build.createdAt))}</p>
         </CardContent>
       </Card>
 

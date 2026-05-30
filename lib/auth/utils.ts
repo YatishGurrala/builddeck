@@ -1,78 +1,28 @@
-import { auth } from "./config";
-import { redirect } from "next/navigation";
-import { prisma } from "@/lib/db/prisma";
+// Re-export Buildstack auth helpers for backwards compatibility.
+export {
+  getSession,
+  requireAuth,
+  requireAdmin,
+  isAdmin,
+} from "@/lib/buildstack/auth";
 
-/**
- * Get the current session (server-side)
- */
-export async function getSession() {
-  return await auth();
-}
+import { getSession } from "@/lib/buildstack/auth";
 
-/**
- * Get the current user (server-side)
- * Returns null if not authenticated
- */
+/** Returns the current user object or null if not authenticated. */
 export async function getCurrentUser() {
-  const session = await auth();
-  
-  if (!session?.user?.id) {
-    return null;
-  }
-
-  const user = await prisma.user.findUnique({
-    where: { id: session.user.id },
-    select: {
-      id: true,
-      email: true,
-      name: true,
-      username: true,
-      role: true,
-      avatarUrl: true,
-      bio: true,
-      website: true,
-      twitter: true,
-      createdAt: true,
-    },
-  });
-
-  return user;
-}
-
-/**
- * Require authentication - redirects to login if not authenticated
- */
-export async function requireAuth() {
-  const session = await auth();
-  
-  if (!session?.user) {
-    redirect("/login");
-  }
-
-  return session;
-}
-
-/**
- * Require admin role - redirects if not admin
- */
-export async function requireAdmin() {
-  const session = await auth();
-  
-  if (!session?.user) {
-    redirect("/login");
-  }
-
-  if (session.user.role !== "ADMIN") {
-    redirect("/dashboard");
-  }
-
-  return session;
-}
-
-/**
- * Check if user is admin
- */
-export async function isAdmin() {
-  const session = await auth();
-  return session?.user?.role === "ADMIN";
+  const session = await getSession();
+  if (!session) return null;
+  const { user } = session;
+  return {
+    id: user.id,
+    email: user.email,
+    name: (user.metadata as Record<string, unknown>)?.name as string | null ?? null,
+    username: null as string | null,
+    role: user.role as "USER" | "ADMIN",
+    avatarUrl: null as string | null,
+    bio: null as string | null,
+    website: null as string | null,
+    twitter: null as string | null,
+    createdAt: new Date(),
+  };
 }

@@ -1,25 +1,45 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
-// Mock prisma - use vi.hoisted to ensure it exists before vi.mock runs
-const { mockPrisma } = vi.hoisted(() => ({
-  mockPrisma: {
-    product: {
-      findUnique: vi.fn(),
-    },
-    socialPost: {
-      create: vi.fn(),
-      findMany: vi.fn(),
-      findUnique: vi.fn(),
-      update: vi.fn(),
-      delete: vi.fn(),
-      deleteMany: vi.fn(),
-    },
+const mockBsRecord = (id: string, data: Record<string, unknown>) => ({
+  id,
+  collection: 'social_posts',
+  ownerId: 'user-1',
+  data,
+  createdAt: new Date().toISOString(),
+  updatedAt: new Date().toISOString(),
+})
+
+const mockProductRecord = (id: string, data: Record<string, unknown>) => ({
+  id,
+  collection: 'products',
+  ownerId: 'user-1',
+  data,
+  createdAt: new Date().toISOString(),
+  updatedAt: new Date().toISOString(),
+})
+
+const { mockSocialQueries, mockProductQueries, mockCategoryQueries } = vi.hoisted(() => ({
+  mockSocialQueries: {
+    createSocialPost: vi.fn(),
+    getSocialPosts: vi.fn(),
+    getSocialPostsByProduct: vi.fn(),
+    getSocialPostById: vi.fn(),
+    updateSocialPostContent: vi.fn(),
+    updateSocialPostStatus: vi.fn(),
+    deleteSocialPostById: vi.fn(),
+    deleteSocialPostsByProduct: vi.fn(),
+  },
+  mockProductQueries: {
+    getProductById: vi.fn(),
+  },
+  mockCategoryQueries: {
+    getCategoryById: vi.fn(),
   },
 }))
 
-vi.mock('@/lib/db/prisma', () => ({
-  prisma: mockPrisma,
-}))
+vi.mock('@/lib/buildstack/queries/social', () => mockSocialQueries)
+vi.mock('@/lib/buildstack/queries/products', () => mockProductQueries)
+vi.mock('@/lib/buildstack/queries/categories', () => mockCategoryQueries)
 
 // Mock providers
 vi.mock('@/lib/social/providers', () => {
@@ -59,31 +79,36 @@ describe('Social Service', () => {
   })
 
   describe('createDraftsForProduct', () => {
-    const mockProduct = {
-      id: 'product-1',
+    const mockProductRec = mockProductRecord('product-1', {
       name: 'TestApp',
       tagline: 'A great testing app',
       description: 'Description here',
       websiteUrl: 'https://testapp.com',
-      category: { name: 'Developer Tools' },
-    }
+      categoryId: 'cat-1',
+      status: 'APPROVED',
+    })
 
     it('should create drafts for a valid product', async () => {
-      mockPrisma.product.findUnique.mockResolvedValue(mockProduct)
-      mockPrisma.socialPost.create.mockResolvedValue({ id: 'post-1' })
+      mockProductQueries.getProductById.mockResolvedValue(mockProductRec)
+      mockCategoryQueries.getCategoryById.mockResolvedValue({
+        id: 'cat-1',
+        collection: 'categories',
+        ownerId: null,
+        data: { name: 'Developer Tools', slug: 'dev-tools' },
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      })
+      mockSocialQueries.createSocialPost.mockResolvedValue(mockBsRecord('post-1', { platform: 'X', status: 'DRAFT' }))
 
       const result = await createDraftsForProduct('product-1')
 
-      expect(mockPrisma.product.findUnique).toHaveBeenCalledWith({
-        where: { id: 'product-1' },
-        include: { category: true },
-      })
-      expect(mockPrisma.socialPost.create).toHaveBeenCalledTimes(2) // X and LinkedIn
+      expect(mockProductQueries.getProductById).toHaveBeenCalledWith('product-1')
+      expect(mockSocialQueries.createSocialPost).toHaveBeenCalledTimes(2) // X and LinkedIn
       expect(result).toHaveLength(2)
     })
 
     it('should throw error for non-existent product', async () => {
-      mockPrisma.product.findUnique.mockResolvedValue(null)
+      mockProductQueries.getProductById.mockResolvedValue(null)
 
       await expect(createDraftsForProduct('non-existent')).rejects.toThrow(
         'Product not found'
@@ -91,17 +116,14 @@ describe('Social Service', () => {
     })
 
     it('should store drafts with DRAFT status', async () => {
-      mockPrisma.product.findUnique.mockResolvedValue(mockProduct)
-      mockPrisma.socialPost.create.mockResolvedValue({ id: 'post-1' })
+      mockProductQueries.getProductById.mockResolvedValue(mockProductRec)
+      mockCategoryQueries.getCategoryById.mockResolvedValue(null)
+      mockSocialQueries.createSocialPost.mockResolvedValue(mockBsRecord('post-1', { platform: 'X', status: 'DRAFT' }))
 
       await createDraftsForProduct('product-1')
 
-      expect(mockPrisma.socialPost.create).toHaveBeenCalledWith(
-        expect.objectContaining({
-          data: expect.objectContaining({
-            status: 'DRAFT',
-          }),
-        })
+      expect(mockSocialQueries.createSocialPost).toHaveBeenCalledWith(
+        expect.objectContaining({ status: 'DRAFT' })
       )
     })
   })
@@ -109,22 +131,19 @@ describe('Social Service', () => {
   describe('getSocialPostsForProduct', () => {
     it('should fetch posts for a product', async () => {
       const mockPosts = [
-        { id: 'post-1', platform: 'X' },
-        { id: 'post-2', platform: 'LINKEDIN' },
+        mockBsRecord('post-1', { platform: 'X' }),
+        mockBsRecord('post-2', { platform: 'LINKEDIN' }),
       ]
-      mockPrisma.socialPost.findMany.mockResolvedValue(mockPosts)
+      mockSocialQueries.getSocialPostsByProduct.mockResolvedValue(mockPosts)
 
       const result = await getSocialPostsForProduct('product-1')
 
-      expect(mockPrisma.socialPost.findMany).toHaveBeenCalledWith({
-        where: { productId: 'product-1' },
-        orderBy: { createdAt: 'desc' },
-      })
+      expect(mockSocialQueries.getSocialPostsByProduct).toHaveBeenCalledWith('product-1')
       expect(result).toEqual(mockPosts)
     })
 
     it('should return empty array when no posts exist', async () => {
-      mockPrisma.socialPost.findMany.mockResolvedValue([])
+      mockSocialQueries.getSocialPostsByProduct.mockResolvedValue([])
 
       const result = await getSocialPostsForProduct('product-1')
 
@@ -134,86 +153,55 @@ describe('Social Service', () => {
 
   describe('getAllSocialPosts', () => {
     it('should fetch all posts without filters', async () => {
-      const mockPosts = [{ id: 'post-1' }, { id: 'post-2' }]
-      mockPrisma.socialPost.findMany.mockResolvedValue(mockPosts)
+      const mockPosts = [mockBsRecord('post-1', {}), mockBsRecord('post-2', {})]
+      mockSocialQueries.getSocialPosts.mockResolvedValue(mockPosts)
 
       const result = await getAllSocialPosts()
 
-      expect(mockPrisma.socialPost.findMany).toHaveBeenCalledWith({
-        where: {},
-        include: {
-          product: {
-            select: {
-              id: true,
-              name: true,
-              slug: true,
-              tagline: true,
-              logoUrl: true,
-            },
-          },
-        },
-        orderBy: { createdAt: 'desc' },
-      })
+      expect(mockSocialQueries.getSocialPosts).toHaveBeenCalledWith(undefined)
       expect(result).toEqual(mockPosts)
     })
 
     it('should filter by status', async () => {
-      mockPrisma.socialPost.findMany.mockResolvedValue([])
+      mockSocialQueries.getSocialPosts.mockResolvedValue([])
 
       await getAllSocialPosts({ status: 'DRAFT' })
 
-      expect(mockPrisma.socialPost.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: { status: 'DRAFT' },
-        })
-      )
+      expect(mockSocialQueries.getSocialPosts).toHaveBeenCalledWith({ status: 'DRAFT' })
     })
 
     it('should filter by platform', async () => {
-      mockPrisma.socialPost.findMany.mockResolvedValue([])
+      mockSocialQueries.getSocialPosts.mockResolvedValue([])
 
       await getAllSocialPosts({ platform: 'X' })
 
-      expect(mockPrisma.socialPost.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: { platform: 'X' },
-        })
-      )
+      expect(mockSocialQueries.getSocialPosts).toHaveBeenCalledWith({ platform: 'X' })
     })
 
     it('should filter by both status and platform', async () => {
-      mockPrisma.socialPost.findMany.mockResolvedValue([])
+      mockSocialQueries.getSocialPosts.mockResolvedValue([])
 
       await getAllSocialPosts({ status: 'PUBLISHED', platform: 'LINKEDIN' })
 
-      expect(mockPrisma.socialPost.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: { status: 'PUBLISHED', platform: 'LINKEDIN' },
-        })
-      )
+      expect(mockSocialQueries.getSocialPosts).toHaveBeenCalledWith({ status: 'PUBLISHED', platform: 'LINKEDIN' })
     })
   })
 
   describe('updateSocialPost', () => {
     it('should update post content', async () => {
-      mockPrisma.socialPost.update.mockResolvedValue({
-        id: 'post-1',
-        content: 'Updated content',
-      })
+      const updatedRecord = mockBsRecord('post-1', { content: 'Updated content' })
+      mockSocialQueries.updateSocialPostContent.mockResolvedValue(updatedRecord)
 
       const result = await updateSocialPost('post-1', 'Updated content')
 
-      expect(mockPrisma.socialPost.update).toHaveBeenCalledWith({
-        where: { id: 'post-1' },
-        data: { content: 'Updated content' },
-      })
-      expect(result.content).toBe('Updated content')
+      expect(mockSocialQueries.updateSocialPostContent).toHaveBeenCalledWith('post-1', 'Updated content')
+      expect(result.data.content).toBe('Updated content')
     })
   })
 
   describe('publishSocialPost', () => {
     it('should return error for non-existent post', async () => {
-      mockPrisma.socialPost.findUnique.mockResolvedValue(null)
+      mockSocialQueries.getSocialPostById.mockResolvedValue(null)
 
       const result = await publishSocialPost('non-existent')
 
@@ -222,11 +210,9 @@ describe('Social Service', () => {
     })
 
     it('should return error for already published post', async () => {
-      mockPrisma.socialPost.findUnique.mockResolvedValue({
-        id: 'post-1',
-        status: 'PUBLISHED',
-        platform: 'X',
-      })
+      mockSocialQueries.getSocialPostById.mockResolvedValue(
+        mockBsRecord('post-1', { status: 'PUBLISHED', platform: 'X', content: 'Test' })
+      )
 
       const result = await publishSocialPost('post-1')
 
@@ -235,79 +221,63 @@ describe('Social Service', () => {
     })
 
     it('should update status on successful publish', async () => {
-      mockPrisma.socialPost.findUnique.mockResolvedValue({
-        id: 'post-1',
-        status: 'DRAFT',
-        platform: 'X',
-        content: 'Test content',
-      })
-      mockPrisma.socialPost.update.mockResolvedValue({})
+      mockSocialQueries.getSocialPostById.mockResolvedValue(
+        mockBsRecord('post-1', { status: 'DRAFT', platform: 'X', content: 'Test content' })
+      )
+      mockSocialQueries.updateSocialPostStatus.mockResolvedValue(
+        mockBsRecord('post-1', { status: 'PUBLISHED', platform: 'X' })
+      )
 
       const result = await publishSocialPost('post-1')
 
       expect(result.success).toBe(true)
-      expect(mockPrisma.socialPost.update).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: { id: 'post-1' },
-          data: expect.objectContaining({
-            status: 'PUBLISHED',
-          }),
-        })
+      expect(mockSocialQueries.updateSocialPostStatus).toHaveBeenCalledWith(
+        'post-1',
+        'PUBLISHED',
+        expect.objectContaining({ publishedAt: expect.any(String) })
       )
     })
   })
 
   describe('deleteSocialPost', () => {
     it('should delete a post', async () => {
-      mockPrisma.socialPost.delete.mockResolvedValue({ id: 'post-1' })
+      mockSocialQueries.deleteSocialPostById.mockResolvedValue(undefined)
 
       await deleteSocialPost('post-1')
 
-      expect(mockPrisma.socialPost.delete).toHaveBeenCalledWith({
-        where: { id: 'post-1' },
-      })
+      expect(mockSocialQueries.deleteSocialPostById).toHaveBeenCalledWith('post-1')
     })
   })
 
   describe('regenerateDrafts', () => {
-    const mockProduct = {
-      id: 'product-1',
+    const mockProductRec = mockProductRecord('product-1', {
       name: 'TestApp',
       tagline: 'A great testing app',
       description: 'Description here',
       websiteUrl: 'https://testapp.com',
-      category: { name: 'Developer Tools' },
-    }
+      categoryId: null,
+      status: 'APPROVED',
+    })
 
     it('should delete existing drafts and create new ones', async () => {
-      mockPrisma.socialPost.deleteMany.mockResolvedValue({ count: 2 })
-      mockPrisma.product.findUnique.mockResolvedValue(mockProduct)
-      mockPrisma.socialPost.create.mockResolvedValue({ id: 'new-post' })
+      mockSocialQueries.deleteSocialPostsByProduct.mockResolvedValue(undefined)
+      mockProductQueries.getProductById.mockResolvedValue(mockProductRec)
+      mockSocialQueries.createSocialPost.mockResolvedValue(mockBsRecord('new-post', { platform: 'X', status: 'DRAFT' }))
 
       await regenerateDrafts('product-1')
 
-      expect(mockPrisma.socialPost.deleteMany).toHaveBeenCalledWith({
-        where: {
-          productId: 'product-1',
-          status: 'DRAFT',
-        },
-      })
-      expect(mockPrisma.socialPost.create).toHaveBeenCalled()
+      expect(mockSocialQueries.deleteSocialPostsByProduct).toHaveBeenCalledWith('product-1', 'DRAFT')
+      expect(mockSocialQueries.createSocialPost).toHaveBeenCalled()
     })
 
     it('should only delete DRAFT posts, not PUBLISHED ones', async () => {
-      mockPrisma.socialPost.deleteMany.mockResolvedValue({ count: 1 })
-      mockPrisma.product.findUnique.mockResolvedValue(mockProduct)
-      mockPrisma.socialPost.create.mockResolvedValue({ id: 'new-post' })
+      mockSocialQueries.deleteSocialPostsByProduct.mockResolvedValue(undefined)
+      mockProductQueries.getProductById.mockResolvedValue(mockProductRec)
+      mockSocialQueries.createSocialPost.mockResolvedValue(mockBsRecord('new-post', { platform: 'X', status: 'DRAFT' }))
 
       await regenerateDrafts('product-1')
 
-      expect(mockPrisma.socialPost.deleteMany).toHaveBeenCalledWith({
-        where: {
-          productId: 'product-1',
-          status: 'DRAFT',
-        },
-      })
+      expect(mockSocialQueries.deleteSocialPostsByProduct).toHaveBeenCalledWith('product-1', 'DRAFT')
     })
   })
 
@@ -323,3 +293,4 @@ describe('Social Service', () => {
     })
   })
 })
+

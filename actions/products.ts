@@ -1,18 +1,25 @@
 "use server";
 
-import { prisma } from "@/lib/db/prisma";
-import { auth } from "@/lib/auth/config";
+import { getSession } from "@/lib/buildstack/auth";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { productSchema } from "@/lib/validations";
 import { slugify } from "@/lib/utils";
 import { createDraftsForProduct } from "@/lib/social";
+import {
+  bsCreateProduct,
+  bsUpdateProduct,
+  bsDeleteProduct,
+  getAllProducts,
+  getProductById,
+} from "@/lib/buildstack/queries/products";
 import type { ActionResponse } from "@/types";
+import type { ProductData } from "@/lib/buildstack/queries/products";
 
 type ProductStatus = "PENDING" | "APPROVED" | "REJECTED";
 
 export async function createProduct(formData: FormData): Promise<ActionResponse> {
-  const session = await auth();
+  const session = await getSession();
 
   if (!session?.user?.id) {
     return { success: false, error: "You must be logged in" };
@@ -33,41 +40,41 @@ export async function createProduct(formData: FormData): Promise<ActionResponse>
 
   // Generate unique slug
   let slug = slugify(data.name);
-  const existingProduct = await prisma.product.findUnique({
-    where: { slug },
-  });
-
-  if (existingProduct) {
+  const allProducts = await getAllProducts();
+  const existingSlug = allProducts.find((p) => p.data.slug === slug);
+  if (existingSlug) {
     slug = `${slug}-${Date.now()}`;
   }
 
-  // For now, we'll skip file uploads (can add Cloudinary or local storage later)
-  // Handle logo URL from form if provided directly
   const logoUrl = formData.get("logo_url") as string | null;
+  const now = new Date().toISOString();
 
   try {
-    await prisma.product.create({
-      data: {
-        name: data.name,
-        slug,
-        tagline: data.tagline,
-        description: data.description,
-        websiteUrl: data.website_url,
-        categoryId: data.category_id || null,
-        logoUrl: logoUrl || null,
-        screenshots: "[]",
-        userId: session.user.id,
-        status: "PENDING",
-      },
+    await bsCreateProduct({
+      name: data.name,
+      slug,
+      tagline: data.tagline,
+      description: data.description,
+      websiteUrl: data.website_url,
+      categoryId: data.category_id || null,
+      logoUrl: logoUrl || null,
+      screenshots: "[]",
+      userId: session.user.id,
+      status: "PENDING",
+      featured: false,
+      featuredAt: null,
+      viewCount: 0,
+      upvoteCount: 0,
+      rejectionReason: null,
+      reviewedAt: null,
+      reviewedById: null,
+      submittedAt: now,
+      approvedAt: null,
     });
-
-    // Log submission
-    // Note: We'll let the product creation handle this for now
 
     revalidatePath("/dashboard");
     redirect("/dashboard?submitted=true");
   } catch (error) {
-    // Check if it's a redirect
     if (error instanceof Error && error.message === "NEXT_REDIRECT") {
       throw error;
     }
@@ -80,21 +87,14 @@ export async function updateProduct(
   productId: string,
   formData: FormData
 ): Promise<ActionResponse> {
-  const session = await auth();
+  const session = await getSession();
 
   if (!session?.user?.id) {
     return { success: false, error: "You must be logged in" };
   }
 
-  // Verify ownership
-  const existingProduct = await prisma.product.findFirst({
-    where: {
-      id: productId,
-      userId: session.user.id,
-    },
-  });
-
-  if (!existingProduct) {
+  const existing = await getProductById(productId);
+  if (!existing || existing.data.userId !== session.user.id) {
     return { success: false, error: "Product not found" };
   }
 
@@ -112,16 +112,13 @@ export async function updateProduct(
   }
 
   try {
-    await prisma.product.update({
-      where: { id: productId },
-      data: {
-        name: data.name,
-        tagline: data.tagline,
-        description: data.description,
-        websiteUrl: data.website_url,
-        categoryId: data.category_id || null,
-        status: "PENDING", // Reset to pending on edit
-      },
+    await bsUpdateProduct(productId, {
+      name: data.name,
+      tagline: data.tagline,
+      description: data.description,
+      websiteUrl: data.website_url,
+      categoryId: data.category_id || null,
+      status: "PENDING",
     });
 
     revalidatePath("/dashboard");
@@ -133,20 +130,19 @@ export async function updateProduct(
 }
 
 export async function deleteProduct(productId: string): Promise<ActionResponse> {
-  const session = await auth();
+  const session = await getSession();
 
   if (!session?.user?.id) {
     return { success: false, error: "You must be logged in" };
   }
 
-  try {
-    await prisma.product.delete({
-      where: {
-        id: productId,
-        userId: session.user.id,
-      },
-    });
+  const existing = await getProductById(productId);
+  if (!existing || existing.data.userId !== session.user.id) {
+    return { success: false, error: "Product not found" };
+  }
 
+  try {
+    await bsDeleteProduct(productId);
     revalidatePath("/dashboard");
     return { success: true };
   } catch (error) {
@@ -155,40 +151,36 @@ export async function deleteProduct(productId: string): Promise<ActionResponse> 
   }
 }
 
-// Admin actions
 export async function updateProductStatus(
   productId: string,
   status: ProductStatus
 ): Promise<ActionResponse> {
-  const session = await auth();
+  const session = await getSession();
 
   if (!session?.user?.id) {
     return { success: false, error: "You must be logged in" };
   }
 
-  // Verify admin role
   if (session.user.role !== "ADMIN") {
     return { success: false, error: "Not authorized" };
   }
 
-  try {
-    await prisma.product.update({
-      where: { id: productId },
-      data: {
-        status,
-        reviewedById: session.user.id,
-        reviewedAt: new Date(),
-        ...(status === "APPROVED" && { approvedAt: new Date() }),
-      },
-    });
+  const now = new Date().toISOString();
 
-    // When approving, generate social post drafts
+  try {
+    const updateData: Partial<ProductData> = {
+      status,
+      reviewedById: session.user.id,
+      reviewedAt: now,
+      ...(status === "APPROVED" && { approvedAt: now }),
+    };
+    await bsUpdateProduct(productId, updateData);
+
     if (status === "APPROVED") {
       try {
         await createDraftsForProduct(productId);
       } catch (error) {
         console.error("Failed to create social drafts:", error);
-        // Don't fail the approval if draft generation fails
       }
     }
 
@@ -202,34 +194,25 @@ export async function updateProductStatus(
 }
 
 export async function toggleFeatured(productId: string): Promise<ActionResponse> {
-  const session = await auth();
+  const session = await getSession();
 
   if (!session?.user?.id) {
     return { success: false, error: "You must be logged in" };
   }
 
-  // Verify admin role
   if (session.user.role !== "ADMIN") {
     return { success: false, error: "Not authorized" };
   }
 
-  // Get current featured status
-  const product = await prisma.product.findUnique({
-    where: { id: productId },
-    select: { featured: true },
-  });
-
+  const product = await getProductById(productId);
   if (!product) {
     return { success: false, error: "Product not found" };
   }
 
   try {
-    await prisma.product.update({
-      where: { id: productId },
-      data: {
-        featured: !product.featured,
-        featuredAt: !product.featured ? new Date() : null,
-      },
+    await bsUpdateProduct(productId, {
+      featured: !product.data.featured,
+      featuredAt: !product.data.featured ? new Date().toISOString() : null,
     });
 
     revalidatePath("/admin");

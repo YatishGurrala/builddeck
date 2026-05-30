@@ -1,6 +1,6 @@
 "use server";
 
-import { auth } from "@/lib/auth/config";
+import { getSession } from "@/lib/buildstack/auth";
 import { revalidatePath } from "next/cache";
 import {
   getAllSocialPosts,
@@ -20,7 +20,7 @@ export async function getSocialPosts(options?: {
   status?: string;
   platform?: SocialPlatform;
 }) {
-  const session = await auth();
+  const session = await getSession();
 
   if (!session?.user?.id || session.user.role !== "ADMIN") {
     return { success: false, error: "Not authorized", data: [] };
@@ -39,7 +39,7 @@ export async function getSocialPosts(options?: {
  * Get social posts for a specific product
  */
 export async function getProductSocialPosts(productId: string) {
-  const session = await auth();
+  const session = await getSession();
 
   if (!session?.user?.id || session.user.role !== "ADMIN") {
     return { success: false, error: "Not authorized", data: [] };
@@ -61,7 +61,7 @@ export async function editSocialPost(
   postId: string,
   content: string
 ): Promise<ActionResponse> {
-  const session = await auth();
+  const session = await getSession();
 
   if (!session?.user?.id || session.user.role !== "ADMIN") {
     return { success: false, error: "Not authorized" };
@@ -85,7 +85,7 @@ export async function editSocialPost(
  * Publish a social post to its platform
  */
 export async function publishPost(postId: string): Promise<ActionResponse & { publishResult?: PublishResult }> {
-  const session = await auth();
+  const session = await getSession();
 
   if (!session?.user?.id || session.user.role !== "ADMIN") {
     return { success: false, error: "Not authorized" };
@@ -110,7 +110,7 @@ export async function publishPost(postId: string): Promise<ActionResponse & { pu
  * Delete a social post
  */
 export async function removeSocialPost(postId: string): Promise<ActionResponse> {
-  const session = await auth();
+  const session = await getSession();
 
   if (!session?.user?.id || session.user.role !== "ADMIN") {
     return { success: false, error: "Not authorized" };
@@ -130,7 +130,7 @@ export async function removeSocialPost(postId: string): Promise<ActionResponse> 
  * Regenerate drafts for a product
  */
 export async function regenerateProductDrafts(productId: string): Promise<ActionResponse> {
-  const session = await auth();
+  const session = await getSession();
 
   if (!session?.user?.id || session.user.role !== "ADMIN") {
     return { success: false, error: "Not authorized" };

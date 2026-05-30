@@ -3,7 +3,7 @@ import { newsletterSchema } from "@/lib/validations";
 import {
   createWaitlistLead,
   getWaitlistLeadByEmail,
-} from "@/lib/db/queries/waitlist";
+} from "@/lib/buildstack/queries/waitlist";
 
 interface WaitlistRequestBody {
   email?: string;

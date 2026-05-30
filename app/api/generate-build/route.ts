@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth/config";
-import { prisma } from "@/lib/db/prisma";
+import { getSession } from "@/lib/buildstack/auth";
+import { createRecord } from "@/lib/buildstack/records";
 import { sendBuildGeneratedEmail } from "@/lib/resend";
 
 type BuildOutput = {
@@ -37,15 +37,13 @@ export async function POST(request: Request) {
     }
 
     const output = buildMockOutput(idea);
-    const session = await auth();
+    const session = await getSession();
 
     if (session?.user?.id) {
-      await prisma.build.create({
-        data: {
-          userId: session.user.id,
-          idea,
-          output,
-        },
+      await createRecord("builds", session.user.id, {
+        userId: session.user.id,
+        idea,
+        output,
       });
 
       if (session.user.email) {

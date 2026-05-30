@@ -1,6 +1,12 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/db/prisma";
+import { createRecord } from "@/lib/buildstack/records";
 import { sendLeadSubmittedEmail } from "@/lib/resend";
+
+interface LeadData {
+  name: string;
+  email: string;
+  message: string;
+}
 
 export async function POST(request: Request) {
   try {
@@ -21,13 +27,7 @@ export async function POST(request: Request) {
       );
     }
 
-    await prisma.lead.create({
-      data: {
-        name,
-        email,
-        message,
-      },
-    });
+    await createRecord<LeadData>("leads", email, { name, email, message });
 
     await sendLeadSubmittedEmail(email, name);
 

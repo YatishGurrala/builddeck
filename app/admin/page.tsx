@@ -1,6 +1,5 @@
 import Image from "next/image";
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import {
   Clock,
   CheckCircle,
@@ -16,8 +15,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatDate } from "@/lib/utils";
 import { AdminActions } from "./admin-actions";
-import { requireAdmin } from "@/lib/auth/utils";
-import { prisma } from "@/lib/db/prisma";
+import { requireAdmin } from "@/lib/buildstack/auth";
+import { getAllProducts, getAdminStats } from "@/lib/buildstack/queries/products";
+import { getCategories } from "@/lib/buildstack/queries/categories";
+import { getSocialPosts } from "@/lib/buildstack/queries/social";
 import type { Product, ProductStatus } from "@/types";
 
 interface AdminPageProps {
@@ -33,37 +34,41 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
   // Build filter condition
   const statusFilter = params.status?.toUpperCase() as ProductStatus | undefined;
   const validStatuses: ProductStatus[] = ["PENDING", "APPROVED", "REJECTED"];
-  
-  const whereClause = statusFilter && validStatuses.includes(statusFilter)
-    ? { status: statusFilter }
-    : {};
 
-  // Fetch filtered products
-  const products = await prisma.product.findMany({
-    where: whereClause,
-    include: {
-      category: true,
-      user: {
-        select: {
-          id: true,
-          name: true,
-          email: true,
-          avatarUrl: true,
-        },
-      },
-    },
-    orderBy: { createdAt: "desc" },
-  });
-
-  // Fetch stats for all products
-  const [pendingCount, approvedCount, rejectedCount, totalCount, subscriberCount, socialPostCount] = await Promise.all([
-    prisma.product.count({ where: { status: "PENDING" } }),
-    prisma.product.count({ where: { status: "APPROVED" } }),
-    prisma.product.count({ where: { status: "REJECTED" } }),
-    prisma.product.count(),
-    prisma.newsletterSubscriber.count(),
-    prisma.socialPost.count({ where: { status: "DRAFT" } }),
+  // Fetch all products and categories
+  const [allProductRecords, categoryRecords, socialDrafts] = await Promise.all([
+    getAllProducts(),
+    getCategories(),
+    getSocialPosts({ status: "DRAFT" }),
   ]);
+
+  const categoryMap = new Map(categoryRecords.map((c) => [c.id, c.data.name]));
+
+  const filteredRecords =
+    statusFilter && validStatuses.includes(statusFilter)
+      ? allProductRecords.filter((r) => r.data.status === statusFilter)
+      : allProductRecords;
+
+  const products = filteredRecords.map((r) => ({
+      ...r.data,
+      id: r.id,
+      featuredAt: r.data.featuredAt ? new Date(r.data.featuredAt) : null,
+      reviewedAt: r.data.reviewedAt ? new Date(r.data.reviewedAt) : null,
+      submittedAt: new Date(r.data.submittedAt),
+      approvedAt: r.data.approvedAt ? new Date(r.data.approvedAt) : null,
+      createdAt: new Date(r.createdAt),
+      updatedAt: new Date(r.updatedAt),
+      category: r.data.categoryId ? { name: categoryMap.get(r.data.categoryId) ?? "Uncategorized" } : null,
+      user: undefined,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    })) as any as (Product & { category?: { name: string } | null; user?: { name: string | null; email: string } | null })[];
+
+  const pendingCount = allProductRecords.filter((r) => r.data.status === "PENDING").length;
+  const approvedCount = allProductRecords.filter((r) => r.data.status === "APPROVED").length;
+  const rejectedCount = allProductRecords.filter((r) => r.data.status === "REJECTED").length;
+  const totalCount = allProductRecords.length;
+  const subscriberCount = 0;
+  const socialPostCount = socialDrafts.length;
 
   return (
     <div className="container mx-auto px-4 py-8">

@@ -1,10 +1,14 @@
 "use server";
 
-import { prisma } from "@/lib/db/prisma";
+import { createRecord, getRecords } from "@/lib/buildstack/records";
 import { isReachWelcomeManaged, syncMakerDigestContact } from "@/lib/hostinger-reach";
 import { sendNewsletterConfirmation } from "@/lib/resend";
 import { newsletterSchema } from "@/lib/validations";
 import type { ActionResponse } from "@/types";
+
+interface SubscriberData {
+  email: string;
+}
 
 export async function subscribeToNewsletter(
   email: string
@@ -15,10 +19,8 @@ export async function subscribeToNewsletter(
   }
 
   try {
-    // Check if already subscribed
-    const existing = await prisma.newsletterSubscriber.findUnique({
-      where: { email },
-    });
+    const all = await getRecords<SubscriberData>("newsletter_subscribers");
+    const existing = all.find((r) => r.data.email === email);
 
     if (existing) {
       return { success: false, error: "You're already subscribed!" };
@@ -33,12 +35,8 @@ export async function subscribeToNewsletter(
       };
     }
 
-    // Insert subscriber
-    await prisma.newsletterSubscriber.create({
-      data: { email },
-    });
+    await createRecord<SubscriberData>("newsletter_subscribers", email, { email });
 
-    // If Reach automations are not sending the welcome email yet, use SMTP fallback.
     if (!isReachWelcomeManaged()) {
       await sendNewsletterConfirmation(email);
     }
