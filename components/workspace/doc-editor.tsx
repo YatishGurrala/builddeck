@@ -12,7 +12,7 @@ import { formatDate } from "@/lib/utils";
 interface Doc {
   id: string;
   title: string;
-  content: string;
+  content?: string | null;
   updatedAt: Date;
 }
 
@@ -32,7 +32,7 @@ export function DocEditor({ productId, docs }: DocEditorProps) {
 
   function selectDoc(doc: Doc) {
     setSelectedDoc(doc);
-    setEditContent(doc.content);
+    setEditContent(doc.content ?? "");
     setEditTitle(doc.title);
     setIsDirty(false);
   }

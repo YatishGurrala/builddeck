@@ -20,6 +20,8 @@ export default async function CalendarPage() {
 
   for (const product of products) {
     const tasks = await getWorkspaceTasks(product.id, user.id).catch(() => []);
+    for (const task of tasks) {
+      if ((task as any).dueDate) {
         events.push({
           id: task.id,
           title: task.title,

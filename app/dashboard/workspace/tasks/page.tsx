@@ -21,6 +21,8 @@ export default async function AllTasksPage() {
 
   for (const product of products) {
     const tasks = await getWorkspaceTasks(product.id, user.id).catch(() => []);
+    for (const task of tasks) {
+      allTasks.push({
         ...task,
         description: (task as any).description ?? null,
         productName: product.name,
