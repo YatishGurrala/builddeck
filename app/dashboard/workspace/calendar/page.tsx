@@ -5,7 +5,8 @@ import { getWorkspaceTasks } from "@/lib/db/queries/workspace/tasks";
 import { WorkspaceCalendar } from "@/components/workspace/workspace-calendar";
 
 export default async function CalendarPage() {
-  const user = (await getCurrentUser()) ?? { id: "preview", name: "Preview User", email: "preview@local" };
+  const user = await getCurrentUser();
+  if (!user) redirect("/login");
 
   const products = await getWorkspaceProducts(user.id).catch(() => []);
 

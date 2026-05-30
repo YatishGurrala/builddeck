@@ -3,7 +3,8 @@ import { redirect } from "next/navigation";
 import { ProductForm } from "@/components/workspace/product-form";
 
 export default async function NewProductPage() {
-  const user = (await getCurrentUser()) ?? { id: "preview", name: "Preview User", email: "preview@local" };
+  const user = await getCurrentUser();
+  if (!user) redirect("/login");
 
   return (
     <div className="p-6 max-w-2xl mx-auto">

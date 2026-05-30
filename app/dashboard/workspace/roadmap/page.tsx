@@ -14,7 +14,8 @@ const COLUMNS: { status: RoadmapStatus; label: string; color: string }[] = [
 ];
 
 export default async function RoadmapPage() {
-  const user = (await getCurrentUser()) ?? { id: "preview", name: "Preview User", email: "preview@local" };
+  const user = await getCurrentUser();
+  if (!user) redirect("/login");
 
   const products = await getWorkspaceProducts(user.id).catch(() => []);
 

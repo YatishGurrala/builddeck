@@ -17,7 +17,8 @@ export default async function ProductDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const user = (await getCurrentUser()) ?? { id: "preview", name: "Preview User", email: "preview@local" };
+  const user = await getCurrentUser();
+  if (!user) redirect("/login");
 
   const product = await getWorkspaceProductById(id, user.id);
   if (!product) notFound();

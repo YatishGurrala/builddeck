@@ -4,8 +4,8 @@ import WorkspaceSidebar from "@/components/workspace/workspace-sidebar";
 import WorkspaceTopBar from "@/components/workspace/workspace-topbar";
 
 export default async function WorkspaceLayout({ children }: { children: React.ReactNode }) {
-  // Auth bypassed for local preview — restore before merging to dev
-  const user = (await getCurrentUser()) ?? { id: "preview", name: "Preview User", email: "preview@local" };
+  const user = await getCurrentUser();
+  if (!user) redirect("/login");
   return (
     <div className="workspace-theme min-h-screen flex" style={{ backgroundColor: "#131315", color: "#e5e1e4" }}>
       <WorkspaceSidebar />
