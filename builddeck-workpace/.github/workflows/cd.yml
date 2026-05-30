@@ -1,0 +1,74 @@
+name: CD
+
+on:
+  push:
+    branches:
+      - dev
+      - main
+      - pro
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deploy-development:
+    if: github.ref == 'refs/heads/dev'
+    runs-on: ubuntu-latest
+    environment: development
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Deploy to development
+        env:
+          DEPLOY_WEBHOOK_URL: ${{ secrets.DEV_DEPLOY_WEBHOOK_URL }}
+        run: |
+          echo "Deploying branch dev to DEVELOPMENT environment"
+          if [[ -n "$DEPLOY_WEBHOOK_URL" ]]; then
+            curl -fsSL -X POST "$DEPLOY_WEBHOOK_URL"
+          else
+            echo "Set DEV_DEPLOY_WEBHOOK_URL to trigger your real deployment target."
+          fi
+
+  deploy-preview:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: preview
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Deploy to preview
+        env:
+          DEPLOY_WEBHOOK_URL: ${{ secrets.MAIN_DEPLOY_WEBHOOK_URL }}
+        run: |
+          echo "Deploying branch main to PREVIEW environment"
+          if [[ -n "$DEPLOY_WEBHOOK_URL" ]]; then
+            curl -fsSL -X POST "$DEPLOY_WEBHOOK_URL"
+          else
+            echo "Set MAIN_DEPLOY_WEBHOOK_URL to trigger your real deployment target."
+          fi
+
+  deploy-production:
+    if: github.ref == 'refs/heads/pro'
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Deploy to production
+        env:
+          DEPLOY_WEBHOOK_URL: ${{ secrets.PRO_DEPLOY_WEBHOOK_URL }}
+        run: |
+          echo "Deploying branch pro to PRODUCTION environment"
+          if [[ -n "$DEPLOY_WEBHOOK_URL" ]]; then
+            curl -fsSL -X POST "$DEPLOY_WEBHOOK_URL"
+          else
+            echo "Set PRO_DEPLOY_WEBHOOK_URL to trigger your real deployment target."
+          fi
