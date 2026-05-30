@@ -1,13 +1,61 @@
-import { Clock } from "lucide-react";
+import { getCurrentUser } from "@/lib/auth/utils";
+import { redirect } from "next/navigation";
+import { getWorkspaceProducts } from "@/lib/db/queries/workspace/products";
+import { getWorkspaceTasks } from "@/lib/db/queries/workspace/tasks";
+import { WorkspaceCalendar } from "@/components/workspace/workspace-calendar";
 
-export default function PlaceholderPage() {
+export default async function CalendarPage() {
+  const user = await getCurrentUser();
+  if (!user) redirect("/login");
+
+  const products = await getWorkspaceProducts(user.id);
+
+  const events: {
+    id: string;
+    title: string;
+    date: Date;
+    type: "task" | "milestone" | "deadline";
+    productName?: string;
+  }[] = [];
+
+  for (const product of products) {
+    const tasks = await getWorkspaceTasks(product.id, user.id);
+    for (const task of tasks) {
+      if ((task as any).dueDate) {
+        events.push({
+          id: task.id,
+          title: task.title,
+          date: new Date((task as any).dueDate),
+          type: (task as any).priority === "HIGH" ? "deadline" : "task",
+          productName: product.name,
+        });
+      }
+    }
+
+    for (const item of (product as any).roadmapItems ?? []) {
+      if ((item as any).dueDate) {
+        events.push({
+          id: item.id,
+          title: item.title,
+          date: new Date((item as any).dueDate),
+          type: "milestone",
+          productName: product.name,
+        });
+      }
+    }
+  }
+
   return (
-    <div className="flex flex-col items-center justify-center h-full min-h-[400px] text-center px-6">
-      <Clock className="h-12 w-12 text-[var(--on-surface-variant)] mb-4 opacity-50" />
-      <h2 className="text-xl font-semibold text-[var(--on-surface)] mb-2">Coming Soon</h2>
-      <p className="text-sm text-[var(--on-surface-variant)] max-w-xs">
-        This section is under construction. Check back soon!
-      </p>
+    <div className="p-6 flex flex-col h-full">
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-white">Calendar</h1>
+        <p className="text-[#a1a1aa] text-sm mt-1 ws-label">
+          {events.length} upcoming events across {products.length} products
+        </p>
+      </div>
+      <div className="flex-1 min-h-0">
+        <WorkspaceCalendar events={events} />
+      </div>
     </div>
   );
 }
