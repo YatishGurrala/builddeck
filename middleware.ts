@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 
 const SESSION_COOKIE = "bs_session";
 
+const WORKSPACE_SUBDOMAIN = "workspace";
+const MAIN_DOMAIN = "builddeck.io";
+
 // Routes that require authentication
 const protectedRoutes = ["/dashboard", "/submit"];
 // Routes that require admin role
@@ -35,6 +38,24 @@ export default async function middleware(req: NextRequest) {
   const payload = rawToken ? decodeSessionToken(rawToken) : null;
   const isLoggedIn = !!(payload && (payload.exp as number) > Date.now() / 1000);
   const isAdmin = (payload?.metadata as Record<string, unknown>)?.role === "ADMIN";
+
+  // Handle workspace subdomain routing: workspace.builddeck.io → /dashboard/workspace/*
+  const host = req.headers.get("host") ?? "";
+  const isWorkspaceSubdomain =
+    host === `${WORKSPACE_SUBDOMAIN}.${MAIN_DOMAIN}` ||
+    host.startsWith(`${WORKSPACE_SUBDOMAIN}.localhost`);
+
+  if (isWorkspaceSubdomain) {
+    if (!isLoggedIn) {
+      const loginUrl = new URL(`https://${MAIN_DOMAIN}/login`);
+      loginUrl.searchParams.set("redirect", nextUrl.pathname);
+      return NextResponse.redirect(loginUrl);
+    }
+    const subPath = nextUrl.pathname === "/" ? "" : nextUrl.pathname;
+    const rewriteUrl = new URL(`/dashboard/workspace${subPath}`, nextUrl);
+    rewriteUrl.search = nextUrl.search;
+    return NextResponse.rewrite(rewriteUrl);
+  }
 
   // Hide non-MVP routes from all users during first release
   if (mvpLockedRoutes.some((route) => nextUrl.pathname.startsWith(route))) {
