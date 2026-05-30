@@ -43,6 +43,9 @@ model User {
   submissions   Submission[] @relation("UserSubmissions")
   reviewedProducts Product[] @relation("ReviewedBy")
   performedActions Submission[] @relation("PerformedBy")
+  workspaceProducts WorkspaceProduct[]
+  workspaceTasks    WorkspaceTask[]
+  workspaceDocs     WorkspaceDoc[]
   
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
@@ -227,6 +230,96 @@ model WaitlistLead {
   updatedAt DateTime @updatedAt
 
   @@index([createdAt])
+}
+
+// =====================================================
+// WORKSPACE MODELS
+// =====================================================
+
+model WorkspaceProduct {
+  id            String   @id @default(cuid())
+  name          String
+  tagline       String?
+  description   String?
+  logoUrl       String?
+  websiteUrl    String?
+  // IDEA, BUILDING, LAUNCHED, PAUSED, ARCHIVED
+  status        String   @default("IDEA")
+  // DISCOVERY, VALIDATION, BUILDING, BETA, LAUNCHED
+  roadmapPhase  String   @default("DISCOVERY")
+
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  tasks         WorkspaceTask[]
+  docs          WorkspaceDoc[]
+  roadmapItems  RoadmapItem[]
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([userId])
+  @@index([status])
+}
+
+model WorkspaceTask {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  // TODO, IN_PROGRESS, DONE, BLOCKED
+  status      String   @default("TODO")
+  // LOW, MEDIUM, HIGH
+  priority    String   @default("MEDIUM")
+  dueDate     DateTime?
+
+  productId   String
+  product     WorkspaceProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([productId])
+  @@index([userId])
+  @@index([status])
+}
+
+model WorkspaceDoc {
+  id        String   @id @default(cuid())
+  title     String
+  content   String   @default("") @db.Text
+
+  productId String
+  product   WorkspaceProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([productId])
+  @@index([userId])
+}
+
+model RoadmapItem {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  // PLANNED, IN_PROGRESS, COMPLETED
+  status      String   @default("PLANNED")
+  order       Int      @default(0)
+
+  productId   String
+  product     WorkspaceProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([productId])
+  @@index([status])
 }
 
 // Social post drafts for X (Twitter) and LinkedIn

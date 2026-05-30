@@ -1,4 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 @import "tailwindcss";
 
 :root {
@@ -218,4 +219,22 @@ h1, h2, h3, h4, h5, h6, .font-headline {
 .prose-custom strong {
   color: white;
   font-weight: 600;
+}
+
+/* Workspace Theme - Stitch Design System */
+.workspace-theme {
+  background-color: #131315;
+  color: #e5e1e4;
+  font-family: 'Geist', system-ui, sans-serif;
+}
+.ws-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  letter-spacing: 0.05em;
+  font-weight: 500;
+}
+.ws-grid-bg {
+  background-image: linear-gradient(to right, #27272a 1px, transparent 1px),
+    linear-gradient(to bottom, #27272a 1px, transparent 1px);
+  background-size: 32px 32px;
 }
