@@ -18,7 +18,7 @@ export default async function WorkspaceProductsPage({ searchParams }: WorkspaceP
   const params = await searchParams;
   const activeStatus = params?.status ?? "All";
 
-  const products = await getWorkspaceProducts(user.id);
+  const products = await getWorkspaceProducts(user.id).catch(() => []);
   const filtered = activeStatus === "All" ? products : products.filter((p) => p.status === activeStatus);
 
   return (

@@ -7,7 +7,7 @@ import { AllTasksView } from "@/components/workspace/all-tasks-view";
 export default async function AllTasksPage() {
   const user = (await getCurrentUser()) ?? { id: "preview", name: "Preview User", email: "preview@local" };
 
-  const products = await getWorkspaceProducts(user.id);
+  const products = await getWorkspaceProducts(user.id).catch(() => []);
   const allTasks: Array<{
     id: string;
     title: string;
@@ -19,9 +19,7 @@ export default async function AllTasksPage() {
   }> = [];
 
   for (const product of products) {
-    const tasks = await getWorkspaceTasks(product.id, user.id);
-    for (const task of tasks) {
-      allTasks.push({
+    const tasks = await getWorkspaceTasks(product.id, user.id).catch(() => []);
         ...task,
         description: (task as any).description ?? null,
         productName: product.name,

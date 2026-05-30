@@ -16,7 +16,7 @@ const COLUMNS: { status: RoadmapStatus; label: string; color: string }[] = [
 export default async function RoadmapPage() {
   const user = (await getCurrentUser()) ?? { id: "preview", name: "Preview User", email: "preview@local" };
 
-  const products = await getWorkspaceProducts(user.id);
+  const products = await getWorkspaceProducts(user.id).catch(() => []);
 
   const allItems: Array<{
     id: string;
@@ -29,7 +29,7 @@ export default async function RoadmapPage() {
   }> = [];
 
   for (const product of products) {
-    const items = await getRoadmapItems(product.id);
+    const items = await getRoadmapItems(product.id).catch(() => []);
     for (const item of items) {
       allItems.push({ ...item, productName: product.name });
     }

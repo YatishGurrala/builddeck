@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
 export default async function WorkspaceDashboardPage() {
   const user = (await getCurrentUser()) ?? { id: "preview", name: "Preview User", email: "preview@local" };
 
-  const products = await getWorkspaceProducts(user.id);
+  const products = await getWorkspaceProducts(user.id).catch(() => []);
 
   const totalProducts = products.length;
   const totalTasks = products.reduce((s, p) => s + (p._count?.tasks ?? 0), 0);

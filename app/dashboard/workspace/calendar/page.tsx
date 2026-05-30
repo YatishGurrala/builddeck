@@ -7,7 +7,7 @@ import { WorkspaceCalendar } from "@/components/workspace/workspace-calendar";
 export default async function CalendarPage() {
   const user = (await getCurrentUser()) ?? { id: "preview", name: "Preview User", email: "preview@local" };
 
-  const products = await getWorkspaceProducts(user.id);
+  const products = await getWorkspaceProducts(user.id).catch(() => []);
 
   const events: {
     id: string;
@@ -18,9 +18,7 @@ export default async function CalendarPage() {
   }[] = [];
 
   for (const product of products) {
-    const tasks = await getWorkspaceTasks(product.id, user.id);
-    for (const task of tasks) {
-      if ((task as any).dueDate) {
+    const tasks = await getWorkspaceTasks(product.id, user.id).catch(() => []);
         events.push({
           id: task.id,
           title: task.title,
