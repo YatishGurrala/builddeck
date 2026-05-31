@@ -9,22 +9,9 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"),
-  title: "BuildDeck | Build faster. Distribute smarter.",
+  title: "Builddeck - Discover & Launch Products",
   description:
-    "BuildDeck helps founders launch products, grow audiences, and build online businesses with modern workflows.",
-  openGraph: {
-    title: "BuildDeck | Build faster. Distribute smarter.",
-    description:
-      "Join the BuildDeck waitlist for founder workflows, AI-assisted systems, and launch strategies.",
-    type: "website",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "BuildDeck | Build faster. Distribute smarter.",
-    description:
-      "Join the BuildDeck waitlist for founder workflows, AI-assisted systems, and launch strategies.",
-  },
+    "Builddeck is a platform where makers submit products, get discovered, and grow their audience.",
 };
 
 export default function RootLayout({
@@ -33,8 +20,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body className={`${inter.className} min-h-screen antialiased`}>
+    <html lang="en" className="dark" suppressHydrationWarning>
+      <body className={`${inter.className} min-h-screen bg-[var(--background)] text-[var(--foreground)] antialiased transition-colors duration-300`}>
         <div className="flex min-h-screen flex-col">
           <Header />
           <main className="flex-1">{children}</main>

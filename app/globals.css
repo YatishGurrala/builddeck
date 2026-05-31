@@ -2,44 +2,43 @@
 @import "tailwindcss";
 
 :root {
-  /* Light mode */
-  --background: #f6f8fc;
-  --foreground: #111827;
+  --background: #f5f8fc;
+  --foreground: #0f172a;
   
   /* Surface Colors */
-  --surface: #ffffff;
-  --surface-dim: #eef2f9;
+  --surface: #f9fbff;
+  --surface-dim: #eef3fa;
   --surface-bright: #e2e8f0;
   --surface-container-lowest: #ffffff;
-  --surface-container-low: #f8fafc;
-  --surface-container: #eef2f7;
-  --surface-container-high: #e5ebf3;
-  --surface-container-highest: #d6deea;
-  --surface-variant: #d6deea;
+  --surface-container-low: #f1f5f9;
+  --surface-container: #e8eef6;
+  --surface-container-high: #dbe5f1;
+  --surface-container-highest: #cedaea;
+  --surface-variant: #c9d6e7;
   
   /* Primary Colors */
   --primary: #0070f3;
-  --primary-container: #0070f3;
+  --primary-container: #d7e8ff;
   --primary-light: #aec6ff;
-  --on-primary: #002e6b;
-  --on-primary-container: #ffffff;
+  --on-primary: #ffffff;
+  --on-primary-container: #00346e;
   
   /* Secondary Colors */
-  --secondary: #dbb8ff;
-  --secondary-container: #6807ba;
-  --on-secondary: #470083;
-  --on-secondary-container: #d0a6ff;
+  --secondary: #7c3aed;
+  --secondary-container: #efe4ff;
+  --on-secondary: #ffffff;
+  --on-secondary-container: #4b0f91;
   
   /* Tertiary Colors */
-  --tertiary: #3ce36a;
-  --tertiary-container: #008936;
-  --on-tertiary: #003912;
-  --on-tertiary-container: #ffffff;
+  --tertiary: #16a34a;
+  --tertiary-container: #d8f7e4;
+  --on-tertiary: #ffffff;
+  --on-tertiary-container: #12522d;
   
   /* Text Colors */
-  --on-surface: #111827;
-  --on-surface-variant: #4b5563;
-  --on-background: #111827;
+  --on-surface: #0f172a;
+  --on-surface-variant: #475569;
+  --on-background: #0f172a;
   
   /* Outline Colors */
   --outline: #94a3b8;
@@ -52,12 +51,12 @@
   --on-error-container: #ffdad6;
   
   /* Inverse Colors */
-  --inverse-surface: #1f2937;
+  --inverse-surface: #1e293b;
   --inverse-on-surface: #f8fafc;
-  --inverse-primary: #0059c5;
+  --inverse-primary: #7cb6ff;
 }
 
-.dark {
+html.dark {
   --background: #101419;
   --foreground: #e0e2ea;
   --surface: #101419;
@@ -69,6 +68,19 @@
   --surface-container-high: #262a30;
   --surface-container-highest: #31353b;
   --surface-variant: #31353b;
+  --primary: #0070f3;
+  --primary-container: #0070f3;
+  --primary-light: #aec6ff;
+  --on-primary: #002e6b;
+  --on-primary-container: #ffffff;
+  --secondary: #dbb8ff;
+  --secondary-container: #6807ba;
+  --on-secondary: #470083;
+  --on-secondary-container: #d0a6ff;
+  --tertiary: #3ce36a;
+  --tertiary-container: #008936;
+  --on-tertiary: #003912;
+  --on-tertiary-container: #ffffff;
   --on-surface: #e0e2ea;
   --on-surface-variant: #c1c6d7;
   --on-background: #e0e2ea;
@@ -76,12 +88,49 @@
   --outline-variant: #414754;
   --inverse-surface: #e0e2ea;
   --inverse-on-surface: #2d3136;
+  --inverse-primary: #0059c5;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  transition: background-color 220ms ease, color 220ms ease;
+}
+
+@keyframes liquidFloat {
+  0% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(0, -6px, 0) scale(1.01); }
+  100% { transform: translate3d(0, 0, 0) scale(1); }
+}
+
+@keyframes riseIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.liquid-card {
+  animation: riseIn 480ms ease both;
+  transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease;
+}
+
+.liquid-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 34px rgba(15, 23, 42, 0.12);
+}
+
+html.dark .liquid-card:hover {
+  box-shadow: 0 18px 38px rgba(8, 18, 38, 0.45);
+}
+
+.liquid-ambient {
+  animation: liquidFloat 6s ease-in-out infinite;
 }
 
 /* Headline Font */

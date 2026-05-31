@@ -25,7 +25,7 @@ export function FounderThemeWrapper({
       className={cn("min-h-screen w-full overflow-x-hidden", tokens.wrapperClass, className)}
     >
       {tokens.ambientClass ? <div aria-hidden className={tokens.ambientClass} /> : null}
-      <div className="relative mx-auto flex w-full max-w-2xl flex-col items-center px-4 pb-24 pt-10 sm:px-6 md:max-w-3xl md:pt-16">
+      <div className="relative mx-auto flex w-full max-w-2xl flex-col items-center px-4 pb-24 pt-28 sm:px-6 sm:pt-32 md:max-w-3xl md:pt-36">
         {children}
       </div>
     </div>

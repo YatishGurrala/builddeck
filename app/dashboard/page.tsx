@@ -6,10 +6,19 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatDate } from "@/lib/utils";
 import { getCurrentUser } from "@/lib/auth/utils";
 import { getBuildsByUser } from "@/lib/db/queries/builds";
+import { getFounderProfileForUser } from "@/lib/founder-profile/store";
+import { getFounderPublicProfileUrl } from "@/lib/founder-profile/public-url";
 
 interface DashboardPageProps {
-  searchParams: Promise<{ submitted?: string }>;
+  searchParams: Promise<{ submitted?: string; mode?: string }>;
 }
+
+const OWNER_DASHBOARD_EMAILS = new Set(
+  (process.env.OWNER_DASHBOARD_EMAILS || "yatishkotlin@gmail.com")
+    .split(",")
+    .map((email) => email.trim().toLowerCase())
+    .filter(Boolean),
+);
 
 export default async function DashboardPage({ searchParams }: DashboardPageProps) {
   const params = await searchParams;
@@ -20,6 +29,14 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
   }
 
   const builds = await getBuildsByUser(user.id);
+  const founderProfile = await getFounderProfileForUser(user);
+  const founderPublicUrl = getFounderPublicProfileUrl(founderProfile.username);
+  const isOwner = OWNER_DASHBOARD_EMAILS.has(user.email.toLowerCase());
+  const isFounderMode = params.mode === "founder";
+
+  if (!isOwner) {
+    redirect("/dashboard/editor");
+  }
 
   return (
     <div className="container mx-auto px-4 py-12">
@@ -38,118 +55,142 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
           <p className="text-zinc-400 mt-1">
             Welcome back, {user?.name || user?.email}
           </p>
+          <div className="mt-3 inline-flex rounded-lg border border-white/10 bg-[#101419] p-1">
+            <Link href="/dashboard?mode=internal" className={"rounded-md px-3 py-1.5 text-sm " + (!isFounderMode ? "bg-white/10 text-white" : "text-zinc-400 hover:text-white")}>Internal</Link>
+            <Link href="/dashboard?mode=founder" className={"rounded-md px-3 py-1.5 text-sm " + (isFounderMode ? "bg-white/10 text-white" : "text-zinc-400 hover:text-white")}>Founder</Link>
+          </div>
         </div>
         <div className="flex items-center gap-3">
-          {user.role === "ADMIN" && (
+          {!isFounderMode && user.role === "ADMIN" && (
             <Link href="/dashboard/waitlist">
               <Button variant="outline">View Waitlist Leads</Button>
             </Link>
           )}
-          <Link href="/">
-            <Button className="gap-2">
-              <Plus className="h-4 w-4" />
-              Generate New Build
-            </Button>
-          </Link>
+          {isFounderMode ? (
+            <Link href={founderPublicUrl} target="_blank" rel="noopener noreferrer">
+              <Button className="gap-2">Open Public Profile</Button>
+            </Link>
+          ) : (
+            <Link href="/">
+              <Button className="gap-2">
+                <Plus className="h-4 w-4" />
+                Generate New Build
+              </Button>
+            </Link>
+          )}
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-zinc-400">
-              Total Builds
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold text-white">{builds?.length || 0}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-zinc-400">
-              Last Generated
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-lg font-semibold text-cyan-300">
-              {builds[0] ? formatDate(builds[0].createdAt) : "No builds yet"}
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      <Card className="mb-8">
-        <CardHeader>
-          <CardTitle>Founder Profile</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-zinc-400">
-            Manage your public founder profile, links, products, and analytics.
-          </p>
-          <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-            {[
-              { href: "/dashboard/profile", label: "Profile" },
-              { href: "/dashboard/links", label: "Links" },
-              { href: "/dashboard/products", label: "Products" },
-              { href: "/dashboard/analytics", label: "Analytics" },
-            ].map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="inline-flex items-center justify-between gap-2 rounded-lg border border-white/10 bg-[#101419] px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-white/5"
-              >
-                {item.label}
-                <ArrowRight className="h-4 w-4 text-zinc-400" />
-              </Link>
-            ))}
+      {!isFounderMode ? (
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-zinc-400">
+                  Total Builds
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-3xl font-bold text-white">{builds?.length || 0}</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-zinc-400">
+                  Last Generated
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-lg font-semibold text-cyan-300">
+                  {builds[0] ? formatDate(builds[0].createdAt) : "No builds yet"}
+                </p>
+              </CardContent>
+            </Card>
           </div>
-        </CardContent>
-      </Card>
+        </>
+      ) : null}
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Your Builds</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {!builds || builds.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-zinc-400 mb-4">
-                You haven&apos;t generated any builds yet.
-              </p>
-              <Link href="/">
-                <Button className="gap-2">
-                  <Plus className="h-4 w-4" />
-                  Generate Your First Build
-                </Button>
-              </Link>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {builds.map((build) => (
-                <div
-                  key={build.id}
-                  className="flex items-center justify-between gap-4 p-4 rounded-lg border border-zinc-800 bg-zinc-900/50"
+      {isFounderMode ? (
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle>Founder Profile</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-zinc-400">
+              Manage your creator studio, block library, public profile, and analytics.
+            </p>
+            <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+              {[
+                { href: "/dashboard/editor", label: "Editor" },
+                { href: "/dashboard/blocks", label: "Blocks" },
+                { href: "/dashboard/themes", label: "Themes" },
+                { href: "/dashboard/profile", label: "Profile" },
+                { href: "/dashboard/links", label: "Links" },
+                { href: "/dashboard/products", label: "Products" },
+                { href: "/dashboard/analytics", label: "Analytics" },
+                { href: founderPublicUrl, label: "Public View", external: true },
+              ].map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  target={item.external ? "_blank" : undefined}
+                  rel={item.external ? "noopener noreferrer" : undefined}
+                  className="inline-flex items-center justify-between gap-2 rounded-lg border border-white/10 bg-[#101419] px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-white/5"
                 >
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-medium text-white truncate">{build.idea}</h3>
-                    <p className="text-xs text-zinc-500 mt-1">
-                      Generated {formatDate(build.createdAt)}
-                    </p>
-                  </div>
-
-                  <Link href={`/dashboard/builds/${build.id}`}>
-                    <Button variant="outline" className="gap-2">
-                      View Details
-                      <ArrowRight className="h-4 w-4" />
-                    </Button>
-                  </Link>
-                </div>
+                  {item.label}
+                  <ArrowRight className="h-4 w-4 text-zinc-400" />
+                </Link>
               ))}
             </div>
-          )}
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      ) : null}
+
+      {!isFounderMode ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>Your Builds</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {!builds || builds.length === 0 ? (
+              <div className="text-center py-12">
+                <p className="text-zinc-400 mb-4">
+                  You haven&apos;t generated any builds yet.
+                </p>
+                <Link href="/">
+                  <Button className="gap-2">
+                    <Plus className="h-4 w-4" />
+                    Generate Your First Build
+                  </Button>
+                </Link>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {builds.map((build) => (
+                  <div
+                    key={build.id}
+                    className="flex items-center justify-between gap-4 p-4 rounded-lg border border-zinc-800 bg-zinc-900/50"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-medium text-white truncate">{build.idea}</h3>
+                      <p className="text-xs text-zinc-500 mt-1">
+                        Generated {formatDate(build.createdAt)}
+                      </p>
+                    </div>
+
+                    <Link href={`/dashboard/builds/${build.id}`}>
+                      <Button variant="outline" className="gap-2">
+                        View Details
+                        <ArrowRight className="h-4 w-4" />
+                      </Button>
+                    </Link>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      ) : null}
     </div>
   );
 }

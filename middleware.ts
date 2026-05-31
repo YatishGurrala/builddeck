@@ -1,5 +1,6 @@
 import { getToken } from "next-auth/jwt";
 import { NextRequest, NextResponse } from "next/server";
+import { RESERVED_FOUNDER_USERNAMES } from "@/lib/founder-profile/reserved-usernames";
 
 // Routes that require authentication
 const protectedRoutes = ["/dashboard", "/submit"];
@@ -18,8 +19,34 @@ const mvpLockedRoutes = [
   "/newsletter",
 ];
 
+function getHostname(req: NextRequest) {
+  return (req.headers.get("host") || "").toLowerCase().split(":")[0];
+}
+
 export default async function middleware(req: NextRequest) {
   const { nextUrl } = req;
+  const hostname = getHostname(req);
+  const founderHost = (process.env.FOUNDER_PAGES_HOST || "pages.builddeck.io").toLowerCase();
+  const appBase = process.env.NEXT_PUBLIC_APP_URL || "https://builddeck.io";
+  const isFounderHost = hostname === founderHost;
+
+  if (isFounderHost) {
+    const trimmedPath = nextUrl.pathname.replace(/^\/+/, "");
+    const segments = trimmedPath ? trimmedPath.split("/") : [];
+
+    // On pages subdomain, allow only `/username` founder profiles.
+    if (segments.length !== 1) {
+      return NextResponse.redirect(new URL(nextUrl.pathname + nextUrl.search, appBase));
+    }
+
+    const username = segments[0].toLowerCase();
+    if (RESERVED_FOUNDER_USERNAMES.has(username)) {
+      return NextResponse.redirect(new URL(nextUrl.pathname + nextUrl.search, appBase));
+    }
+
+    return NextResponse.next();
+  }
+
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
   const isLoggedIn = !!token;
   const isAdmin = token?.role === "ADMIN";

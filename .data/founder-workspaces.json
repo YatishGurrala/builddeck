@@ -1,0 +1,627 @@
+{
+  "workspaces": {
+    "cmndmmpch0000molphywpsigp": {
+      "profile": {
+        "id": "profile_cmndmmpch0000molphywpsigp",
+        "userId": "cmndmmpch0000molphywpsigp",
+        "username": "yg",
+        "displayName": "YG",
+        "headline": "Building AI-native products, founder tools, and growth systems.",
+        "bio": "Android engineer, product builder, and founder building tools for modern creators and startups.",
+        "avatarUrl": "",
+        "bannerUrl": "",
+        "theme": "minimal-light",
+        "isPublished": true,
+        "currentlyBuilding": "Builddeck — a founder identity & product hub for builders.",
+        "newsletterCta": {
+          "headline": "Build in public with me",
+          "description": "Weekly notes on shipping AI-native products, founder tooling, and growth experiments.",
+          "ctaLabel": "Subscribe to the newsletter",
+          "ctaUrl": "https://builddeck.io"
+        },
+        "socials": [
+          {
+            "platform": "LinkedIn",
+            "url": "https://linkedin.com"
+          },
+          {
+            "platform": "X",
+            "url": "https://x.com"
+          },
+          {
+            "platform": "GitHub",
+            "url": "https://github.com"
+          },
+          {
+            "platform": "Website",
+            "url": "https://builddeck.io"
+          }
+        ],
+        "links": [
+          {
+            "id": "link_cmndmmpch0000molphywpsigp_1",
+            "profileId": "profile_cmndmmpch0000molphywpsigp",
+            "title": "Visit Builddeck",
+            "url": "https://builddeck.io",
+            "description": "Founder identity and product discovery platform.",
+            "icon": "Sparkles",
+            "position": 1,
+            "isActive": true
+          },
+          {
+            "id": "link_cmndmmpch0000molphywpsigp_2",
+            "profileId": "profile_cmndmmpch0000molphywpsigp",
+            "title": "Read the latest build log",
+            "url": "https://builddeck.io/blog",
+            "description": "Follow the journey of building products in public.",
+            "icon": "BookOpen",
+            "position": 2,
+            "isActive": true
+          },
+          {
+            "id": "link_cmndmmpch0000molphywpsigp_3",
+            "profileId": "profile_cmndmmpch0000molphywpsigp",
+            "title": "Book a 1:1",
+            "url": "#",
+            "description": "Founder advisory and product strategy sessions.",
+            "icon": "Calendar",
+            "position": 3,
+            "isActive": true
+          }
+        ],
+        "products": [
+          {
+            "id": "product_cmndmmpch0000molphywpsigp_1",
+            "profileId": "profile_cmndmmpch0000molphywpsigp",
+            "name": "Builddeck",
+            "description": "A founder identity and product hub for builders.",
+            "url": "https://builddeck.io",
+            "status": "building",
+            "position": 1,
+            "isFeatured": true
+          },
+          {
+            "id": "product_cmndmmpch0000molphywpsigp_2",
+            "profileId": "profile_cmndmmpch0000molphywpsigp",
+            "name": "RoomAccord",
+            "description": "A roommate management app for shared living agreements, chores, and expenses.",
+            "url": "https://roomaccord.com",
+            "status": "building",
+            "position": 2,
+            "isFeatured": true
+          },
+          {
+            "id": "product_cmndmmpch0000molphywpsigp_3",
+            "profileId": "profile_cmndmmpch0000molphywpsigp",
+            "name": "ResumeLoopAI",
+            "description": "AI-powered resume improvement system for better job application conversion.",
+            "url": "https://resumeloopai.com",
+            "status": "launched",
+            "position": 3,
+            "isFeatured": true
+          }
+        ],
+        "createdAt": "2026-05-29T20:00:22.679Z",
+        "updatedAt": "2026-05-30T22:03:47.291Z",
+        "featuredContent": {
+          "title": "Visit Builddeck",
+          "description": "Founder identity and product discovery platform.",
+          "url": "https://builddeck.io"
+        },
+        "videoEmbed": {
+          "title": "Who am i",
+          "url": "https://www.youtube.com/watch?v=3FIRNGJh00w"
+        },
+        "testimonial": {
+          "quote": "YG ships consistently and explains the work clearly.",
+          "author": "Builddeck visitor",
+          "role": "Founder"
+        }
+      },
+      "blocks": [
+        {
+          "id": "block_cmndmmpch0000molphywpsigp_1",
+          "type": "text",
+          "order": 1,
+          "position": 1,
+          "title": "Hero Block",
+          "description": "Profile intro, avatar, and positioning statement.",
+          "isActive": true,
+          "x": 0,
+          "y": 0,
+          "w": 12,
+          "h": 3,
+          "props": {},
+          "layout": {
+            "x": 0,
+            "y": 0,
+            "w": 12,
+            "h": 3,
+            "minW": 6,
+            "minH": 3
+          }
+        },
+        {
+          "id": "block_cmndmmpch0000molphywpsigp_2",
+          "type": "text",
+          "order": 2,
+          "position": 2,
+          "title": "Social Links",
+          "description": "Outbound links to your social platforms.",
+          "isActive": true,
+          "x": 0,
+          "y": 3,
+          "w": 6,
+          "h": 3,
+          "props": {},
+          "layout": {
+            "x": 0,
+            "y": 3,
+            "w": 6,
+            "h": 3,
+            "minW": 4,
+            "minH": 2
+          }
+        },
+        {
+          "id": "block_cmndmmpch0000molphywpsigp_3",
+          "type": "newsletter",
+          "order": 3,
+          "position": 3,
+          "title": "Newsletter",
+          "description": "Lead capture module with a clear CTA.",
+          "isActive": false,
+          "x": 6,
+          "y": 6,
+          "w": 6,
+          "h": 3,
+          "props": {},
+          "layout": {
+            "x": 6,
+            "y": 6,
+            "w": 6,
+            "h": 3,
+            "minW": 4,
+            "minH": 2
+          }
+        },
+        {
+          "id": "block_cmndmmpch0000molphywpsigp_4",
+          "type": "text",
+          "order": 4,
+          "position": 4,
+          "title": "Featured Content",
+          "description": "One highlighted content piece for discovery.",
+          "isActive": true,
+          "x": 0,
+          "y": 6,
+          "w": 12,
+          "h": 4,
+          "props": {},
+          "layout": {
+            "x": 0,
+            "y": 6,
+            "w": 12,
+            "h": 4,
+            "minW": 6,
+            "minH": 3
+          }
+        },
+        {
+          "id": "block_1780175490514",
+          "type": "text",
+          "order": 5,
+          "position": 5,
+          "title": "Digital Product",
+          "description": "Premium card for ebooks, templates, and mini-courses.",
+          "isActive": true,
+          "x": 0,
+          "y": 10,
+          "w": 12,
+          "h": 5,
+          "props": {},
+          "layout": {
+            "x": 0,
+            "y": 10,
+            "w": 12,
+            "h": 5,
+            "minW": 6,
+            "minH": 3
+          }
+        },
+        {
+          "id": "block_1780175668862",
+          "type": "text",
+          "order": 6,
+          "position": 6,
+          "title": "Video Embed",
+          "description": "Responsive media block for YouTube and Vimeo embeds.",
+          "isActive": true,
+          "x": 0,
+          "y": 15,
+          "w": 12,
+          "h": 5,
+          "props": {},
+          "layout": {
+            "x": 0,
+            "y": 15,
+            "w": 12,
+            "h": 5,
+            "minW": 6,
+            "minH": 3
+          }
+        },
+        {
+          "id": "block_1780175720257",
+          "type": "text",
+          "order": 7,
+          "position": 7,
+          "title": "Testimonial",
+          "description": "Social proof quote card with attribution and role.",
+          "isActive": true,
+          "x": 6,
+          "y": 20,
+          "w": 6,
+          "h": 4,
+          "props": {},
+          "layout": {
+            "x": 6,
+            "y": 20,
+            "w": 6,
+            "h": 4,
+            "minW": 4,
+            "minH": 3
+          }
+        },
+        {
+          "id": "block_1780175732421",
+          "type": "text",
+          "order": 8,
+          "position": 8,
+          "title": "Current Project",
+          "description": "Large focus card highlighting what you are building now.",
+          "isActive": true,
+          "x": 0,
+          "y": 24,
+          "w": 12,
+          "h": 3,
+          "props": {},
+          "layout": {
+            "x": 0,
+            "y": 24,
+            "w": 12,
+            "h": 3,
+            "minW": 6,
+            "minH": 2
+          }
+        },
+        {
+          "id": "block_1780175745508",
+          "type": "text",
+          "order": 9,
+          "position": 9,
+          "title": "Resources",
+          "description": "Structured link list for playbooks, tools, and references.",
+          "isActive": true,
+          "x": 0,
+          "y": 20,
+          "w": 6,
+          "h": 4,
+          "props": {},
+          "layout": {
+            "x": 0,
+            "y": 20,
+            "w": 6,
+            "h": 4,
+            "minW": 4,
+            "minH": 3
+          }
+        }
+      ],
+      "analytics": [
+        {
+          "id": "evt_1780174985016_v1h8r",
+          "profileId": "profile_cmndmmpch0000molphywpsigp",
+          "eventType": "profile_view",
+          "createdAt": "2026-05-30T21:03:05.016Z"
+        },
+        {
+          "id": "evt_1780174986796_5d0nh",
+          "profileId": "profile_cmndmmpch0000molphywpsigp",
+          "eventType": "profile_view",
+          "createdAt": "2026-05-30T21:03:06.796Z"
+        },
+        {
+          "id": "evt_1780175161653_eavyp",
+          "profileId": "profile_cmndmmpch0000molphywpsigp",
+          "eventType": "profile_view",
+          "createdAt": "2026-05-30T21:06:01.653Z"
+        },
+        {
+          "id": "evt_1780175174366_a2u7g",
+          "profileId": "profile_cmndmmpch0000molphywpsigp",
+          "eventType": "social_click",
+          "targetId": "GitHub",
+          "createdAt": "2026-05-30T21:06:14.367Z"
+        },
+        {
+          "id": "evt_1780175373093_hyubf",
+          "profileId": "profile_cmndmmpch0000molphywpsigp",
+          "eventType": "profile_view",
+          "createdAt": "2026-05-30T21:09:33.093Z"
+        },
+        {
+          "id": "evt_1780175420965_oqb03",
+          "profileId": "profile_cmndmmpch0000molphywpsigp",
+          "eventType": "profile_view",
+          "createdAt": "2026-05-30T21:10:20.965Z"
+        },
+        {
+          "id": "evt_1780175458851_fc1sg",
+          "profileId": "profile_cmndmmpch0000molphywpsigp",
+          "eventType": "profile_view",
+          "createdAt": "2026-05-30T21:10:58.851Z"
+        },
+        {
+          "id": "evt_1780175475038_tx5p3",
+          "profileId": "profile_cmndmmpch0000molphywpsigp",
+          "eventType": "profile_view",
+          "createdAt": "2026-05-30T21:11:15.038Z"
+        },
+        {
+          "id": "evt_1780175495701_wj83r",
+          "profileId": "profile_cmndmmpch0000molphywpsigp",
+          "eventType": "profile_view",
+          "createdAt": "2026-05-30T21:11:35.701Z"
+        },
+        {
+          "id": "evt_1780175507698_jae8t",
+          "profileId": "profile_cmndmmpch0000molphywpsigp",
+          "eventType": "profile_view",
+          "createdAt": "2026-05-30T21:11:47.698Z"
+        },
+        {
+          "id": "evt_1780175559949_mu1y0",
+          "profileId": "profile_cmndmmpch0000molphywpsigp",
+          "eventType": "profile_view",
+          "createdAt": "2026-05-30T21:12:39.949Z"
+        },
+        {
+          "id": "evt_1780175572062_o3gwh",
+          "profileId": "profile_cmndmmpch0000molphywpsigp",
+          "eventType": "profile_view",
+          "createdAt": "2026-05-30T21:12:52.062Z"
+        },
+        {
+          "id": "evt_1780175672431_wmpj8",
+          "profileId": "profile_cmndmmpch0000molphywpsigp",
+          "eventType": "profile_view",
+          "createdAt": "2026-05-30T21:14:32.431Z"
+        },
+        {
+          "id": "evt_1780175687461_jm1fj",
+          "profileId": "profile_cmndmmpch0000molphywpsigp",
+          "eventType": "profile_view",
+          "createdAt": "2026-05-30T21:14:47.461Z"
+        },
+        {
+          "id": "evt_1780175712101_ktifr",
+          "profileId": "profile_cmndmmpch0000molphywpsigp",
+          "eventType": "profile_view",
+          "createdAt": "2026-05-30T21:15:12.102Z"
+        },
+        {
+          "id": "evt_1780175725307_0zoy6",
+          "profileId": "profile_cmndmmpch0000molphywpsigp",
+          "eventType": "profile_view",
+          "createdAt": "2026-05-30T21:15:25.307Z"
+        },
+        {
+          "id": "evt_1780175736407_4ndks",
+          "profileId": "profile_cmndmmpch0000molphywpsigp",
+          "eventType": "profile_view",
+          "createdAt": "2026-05-30T21:15:36.407Z"
+        },
+        {
+          "id": "evt_1780175748615_14da8",
+          "profileId": "profile_cmndmmpch0000molphywpsigp",
+          "eventType": "profile_view",
+          "createdAt": "2026-05-30T21:15:48.615Z"
+        },
+        {
+          "id": "evt_1780175768917_7kta6",
+          "profileId": "profile_cmndmmpch0000molphywpsigp",
+          "eventType": "profile_view",
+          "createdAt": "2026-05-30T21:16:08.917Z"
+        },
+        {
+          "id": "evt_1780175816860_xghdj",
+          "profileId": "profile_cmndmmpch0000molphywpsigp",
+          "eventType": "profile_view",
+          "createdAt": "2026-05-30T21:16:56.860Z"
+        },
+        {
+          "id": "evt_1780175838243_77jje",
+          "profileId": "profile_cmndmmpch0000molphywpsigp",
+          "eventType": "profile_view",
+          "createdAt": "2026-05-30T21:17:18.243Z"
+        },
+        {
+          "id": "evt_1780175848231_6n9tz",
+          "profileId": "profile_cmndmmpch0000molphywpsigp",
+          "eventType": "profile_view",
+          "createdAt": "2026-05-30T21:17:28.231Z"
+        },
+        {
+          "id": "evt_1780175860016_13fgn",
+          "profileId": "profile_cmndmmpch0000molphywpsigp",
+          "eventType": "profile_view",
+          "createdAt": "2026-05-30T21:17:40.016Z"
+        },
+        {
+          "id": "evt_1780176242325_3egae",
+          "profileId": "profile_cmndmmpch0000molphywpsigp",
+          "eventType": "profile_view",
+          "createdAt": "2026-05-30T21:24:02.325Z"
+        },
+        {
+          "id": "evt_1780176242842_dtbu1",
+          "profileId": "profile_cmndmmpch0000molphywpsigp",
+          "eventType": "profile_view",
+          "createdAt": "2026-05-30T21:24:02.843Z"
+        },
+        {
+          "id": "evt_1780176425697_2vfbb",
+          "profileId": "profile_cmndmmpch0000molphywpsigp",
+          "eventType": "profile_view",
+          "createdAt": "2026-05-30T21:27:05.697Z"
+        },
+        {
+          "id": "evt_1780176427348_f54xk",
+          "profileId": "profile_cmndmmpch0000molphywpsigp",
+          "eventType": "profile_view",
+          "createdAt": "2026-05-30T21:27:07.348Z"
+        },
+        {
+          "id": "evt_1780176454084_vnxfs",
+          "profileId": "profile_cmndmmpch0000molphywpsigp",
+          "eventType": "profile_view",
+          "createdAt": "2026-05-30T21:27:34.084Z"
+        },
+        {
+          "id": "evt_1780176470134_etw0y",
+          "profileId": "profile_cmndmmpch0000molphywpsigp",
+          "eventType": "profile_view",
+          "createdAt": "2026-05-30T21:27:50.135Z"
+        },
+        {
+          "id": "evt_1780176482956_slr79",
+          "profileId": "profile_cmndmmpch0000molphywpsigp",
+          "eventType": "profile_view",
+          "createdAt": "2026-05-30T21:28:02.956Z"
+        },
+        {
+          "id": "evt_1780176534225_udbhb",
+          "profileId": "profile_cmndmmpch0000molphywpsigp",
+          "eventType": "profile_view",
+          "createdAt": "2026-05-30T21:28:54.225Z"
+        },
+        {
+          "id": "evt_1780176581270_hiaem",
+          "profileId": "profile_cmndmmpch0000molphywpsigp",
+          "eventType": "profile_view",
+          "createdAt": "2026-05-30T21:29:41.270Z"
+        },
+        {
+          "id": "evt_1780176612759_8lx06",
+          "profileId": "profile_cmndmmpch0000molphywpsigp",
+          "eventType": "profile_view",
+          "createdAt": "2026-05-30T21:30:12.759Z"
+        },
+        {
+          "id": "evt_1780176682022_pjby4",
+          "profileId": "profile_cmndmmpch0000molphywpsigp",
+          "eventType": "profile_view",
+          "createdAt": "2026-05-30T21:31:22.022Z"
+        },
+        {
+          "id": "evt_1780176688060_vzyzs",
+          "profileId": "profile_cmndmmpch0000molphywpsigp",
+          "eventType": "link_click",
+          "targetId": "link_cmndmmpch0000molphywpsigp_1",
+          "createdAt": "2026-05-30T21:31:28.060Z"
+        },
+        {
+          "id": "evt_1780176715643_kypjs",
+          "profileId": "profile_cmndmmpch0000molphywpsigp",
+          "eventType": "profile_view",
+          "createdAt": "2026-05-30T21:31:55.643Z"
+        },
+        {
+          "id": "evt_1780176724369_9kltz",
+          "profileId": "profile_cmndmmpch0000molphywpsigp",
+          "eventType": "link_click",
+          "targetId": "link_cmndmmpch0000molphywpsigp_2",
+          "createdAt": "2026-05-30T21:32:04.369Z"
+        },
+        {
+          "id": "evt_1780178188586_xnrlo",
+          "profileId": "profile_cmndmmpch0000molphywpsigp",
+          "eventType": "profile_view",
+          "createdAt": "2026-05-30T21:56:28.586Z"
+        },
+        {
+          "id": "evt_1780178344704_bbil3",
+          "profileId": "profile_cmndmmpch0000molphywpsigp",
+          "eventType": "profile_view",
+          "createdAt": "2026-05-30T21:59:04.704Z"
+        },
+        {
+          "id": "evt_1780178389236_5d3tm",
+          "profileId": "profile_cmndmmpch0000molphywpsigp",
+          "eventType": "profile_view",
+          "createdAt": "2026-05-30T21:59:49.236Z"
+        },
+        {
+          "id": "evt_1780178642517_2a7xg",
+          "profileId": "profile_cmndmmpch0000molphywpsigp",
+          "eventType": "profile_view",
+          "createdAt": "2026-05-30T22:04:02.517Z"
+        },
+        {
+          "id": "evt_1780179320841_uzp87",
+          "profileId": "profile_cmndmmpch0000molphywpsigp",
+          "eventType": "profile_view",
+          "createdAt": "2026-05-30T22:15:20.841Z"
+        },
+        {
+          "id": "evt_1780179323416_w1gow",
+          "profileId": "profile_cmndmmpch0000molphywpsigp",
+          "eventType": "profile_view",
+          "createdAt": "2026-05-30T22:15:23.417Z"
+        },
+        {
+          "id": "evt_1780179589527_bte1s",
+          "profileId": "profile_cmndmmpch0000molphywpsigp",
+          "eventType": "profile_view",
+          "createdAt": "2026-05-30T22:19:49.528Z"
+        },
+        {
+          "id": "evt_1780179598790_ba33d",
+          "profileId": "profile_cmndmmpch0000molphywpsigp",
+          "eventType": "social_click",
+          "targetId": "Website",
+          "createdAt": "2026-05-30T22:19:58.790Z"
+        },
+        {
+          "id": "evt_1780179641049_x0emw",
+          "profileId": "profile_cmndmmpch0000molphywpsigp",
+          "eventType": "profile_view",
+          "createdAt": "2026-05-30T22:20:41.049Z"
+        },
+        {
+          "id": "evt_1780179850386_gl9qx",
+          "profileId": "profile_cmndmmpch0000molphywpsigp",
+          "eventType": "profile_view",
+          "createdAt": "2026-05-30T22:24:10.386Z"
+        },
+        {
+          "id": "evt_1780180216594_rqf3d",
+          "profileId": "profile_cmndmmpch0000molphywpsigp",
+          "eventType": "profile_view",
+          "createdAt": "2026-05-30T22:30:16.594Z"
+        },
+        {
+          "id": "evt_1780180330766_m08hl",
+          "profileId": "profile_cmndmmpch0000molphywpsigp",
+          "eventType": "profile_view",
+          "createdAt": "2026-05-30T22:32:10.766Z"
+        }
+      ],
+      "usernameAliases": [
+        "yatish",
+        "yaah"
+      ]
+    }
+  }
+}

@@ -1,35 +1,8 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { FounderProfilePage } from "@/components/founder-profile/founder-profile-page";
-import { getMockFounderProfileByUsername } from "@/lib/founder-profile/mock-data";
-
-/**
- * Reserved top-level route segments — these must NOT be matched by the
- * `/[username]` catch-all. Keep this list in sync with `app/` directories
- * and any first-class slugs we want to protect.
- */
-const RESERVED_USERNAMES = new Set<string>([
-  "about",
-  "admin",
-  "api",
-  "blog",
-  "categories",
-  "contact",
-  "dashboard",
-  "login",
-  "logout",
-  "privacy",
-  "products",
-  "signup",
-  "submit",
-  "settings",
-  "support",
-  "terms",
-  "_next",
-  "favicon.ico",
-  "robots.txt",
-  "sitemap.xml",
-]);
+import { getFounderPublicWorkspaceByUsername } from "@/lib/founder-profile/store";
+import { RESERVED_FOUNDER_USERNAMES } from "@/lib/founder-profile/reserved-usernames";
 
 interface FounderProfileRouteProps {
   params: Promise<{ username: string }>;
@@ -37,19 +10,20 @@ interface FounderProfileRouteProps {
 
 async function loadProfile(username: string) {
   const normalized = username.toLowerCase();
-  if (RESERVED_USERNAMES.has(normalized)) return null;
-  // MVP: mock data only. Swap with `getFounderProfileByUsername(normalized)` later.
-  return getMockFounderProfileByUsername(normalized);
+  if (RESERVED_FOUNDER_USERNAMES.has(normalized)) return null;
+  const workspace = await getFounderPublicWorkspaceByUsername(normalized);
+  return workspace;
 }
 
 export async function generateMetadata({
   params,
 }: FounderProfileRouteProps): Promise<Metadata> {
   const { username } = await params;
-  const profile = await loadProfile(username);
-  if (!profile) {
+  const workspace = await loadProfile(username);
+  if (!workspace || !workspace.profile.isPublished) {
     return { title: "Profile not found · Builddeck" };
   }
+  const { profile } = workspace;
   const title = `${profile.displayName} (@${profile.username}) · Builddeck`;
   const description = profile.headline || profile.bio || "Founder profile on Builddeck";
   return {
@@ -68,7 +42,7 @@ export default async function FounderProfileRoute({
   params,
 }: FounderProfileRouteProps) {
   const { username } = await params;
-  const profile = await loadProfile(username);
-  if (!profile || !profile.isPublished) notFound();
-  return <FounderProfilePage profile={profile} />;
+  const workspace = await loadProfile(username);
+  if (!workspace || !workspace.profile.isPublished) notFound();
+  return <FounderProfilePage profile={workspace.profile} blocks={workspace.blocks} />;
 }
