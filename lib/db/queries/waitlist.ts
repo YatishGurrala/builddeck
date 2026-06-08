@@ -106,6 +106,7 @@ export async function getWaitlistLeadCount() {
   } catch (error) {
     if (!isMissingWaitlistTableError(error)) throw error;
 
-    return prisma.newsletterSubscriber.count();
-  }
+    return prisma.newsletterSubscriber.count({
+      where: { source: "builddeck-landing" },
+    });
 }
