@@ -8,11 +8,13 @@ type Theme = "light" | "dark";
 
 function applyTheme(theme: Theme) {
   const root = document.documentElement;
+  root.style.colorScheme = theme;
   if (theme === "dark") {
     root.classList.add("dark");
   } else {
     root.classList.remove("dark");
   }
+  document.body.style.colorScheme = theme;
 }
 
 export function ThemeToggle() {
