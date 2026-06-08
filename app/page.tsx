@@ -108,7 +108,7 @@ export default function HomePage() {
             height="600"
             frameBorder="0"
             allowFullScreen
-            className="block w-full rounded-2xl border border-[var(--outline-variant)] bg-white transition-[filter,background-color,border-color] duration-300 dark:border-[var(--outline-variant)] dark:bg-[var(--surface-container-low)] dark:invert dark:hue-rotate-180 dark:brightness-95 dark:contrast-95"
+            className="block w-full rounded-2xl border border-[var(--outline-variant)] bg-white transition-[background-color,border-color] duration-300 dark:border-[var(--outline-variant)] dark:bg-[var(--surface-container-low)]"
           />
         </div>
       </section>
