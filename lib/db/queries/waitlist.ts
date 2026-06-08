@@ -15,7 +15,6 @@ function isMissingWaitlistTableError(error: unknown) {
     error.code === "P2021"
   );
 }
-}
 
 function mapNewsletterToWaitlistLead(subscriber: {
   id: string;
@@ -109,4 +108,5 @@ export async function getWaitlistLeadCount() {
     return prisma.newsletterSubscriber.count({
       where: { source: "builddeck-landing" },
     });
+  }
 }
