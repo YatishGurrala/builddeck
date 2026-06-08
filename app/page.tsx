@@ -91,18 +91,24 @@ export default function HomePage() {
         <p className="mt-4 text-sm text-[var(--on-surface-variant)]">Early access coming soon.</p>
       </section>
 
-      <section id="waitlist-email" className="rounded-3xl border border-[var(--outline-variant)] bg-[var(--surface-container-low)] p-7 md:p-8">
-        <h2 className="text-2xl font-bold text-[var(--on-surface)]">Waitlist</h2>
-        <p className="mt-3 text-[var(--on-surface-variant)]">
-          Join the early waitlist for direct product access updates.
-        </p>
-        <div className="mt-5">
+      <section
+        id="waitlist-email"
+        className="overflow-hidden rounded-3xl border border-[var(--outline-variant)] bg-[var(--surface-container-low)] shadow-[0_20px_60px_rgba(15,23,42,0.08)]"
+      >
+        <div className="border-b border-[var(--outline-variant)]/60 px-6 py-4 md:px-8">
+          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--on-surface-variant)]">
+            Waitlist
+          </p>
+        </div>
+        <div className="bg-[var(--surface-container)] p-3 md:p-4">
           <iframe
+            title="Builddeck waitlist form"
             src="https://fixed-frame-d08.notion.site/ebd//37921165c02b8024b781ca3ba1c80bbd"
             width="100%"
-            height="600"
+            height="760"
             frameBorder="0"
             allowFullScreen
+            className="block w-full rounded-2xl border border-[var(--outline-variant)] bg-white"
           />
         </div>
       </section>
