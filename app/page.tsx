@@ -1,4 +1,3 @@
-import { WaitlistForm } from "@/components/forms/waitlist-form";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
@@ -98,7 +97,13 @@ export default function HomePage() {
           Join the early waitlist for direct product access updates.
         </p>
         <div className="mt-5">
-          <WaitlistForm />
+          <iframe
+            src="https://fixed-frame-d08.notion.site/ebd//37921165c02b8024b781ca3ba1c80bbd"
+            width="100%"
+            height="600"
+            frameBorder="0"
+            allowFullScreen
+          />
         </div>
       </section>
     </main>
