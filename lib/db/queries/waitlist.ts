@@ -85,6 +85,7 @@ export async function getWaitlistLeads() {
     if (!isMissingWaitlistTableError(error)) throw error;
 
     const subscribers = await prisma.newsletterSubscriber.findMany({
+      where: { source: "builddeck-landing" },
       select: {
         id: true,
         email: true,
