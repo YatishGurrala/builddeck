@@ -20,44 +20,23 @@ export async function getCurrentUser() {
     return null;
   }
 
-  try {
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        username: true,
-        role: true,
-        avatarUrl: true,
-        bio: true,
-        website: true,
-        twitter: true,
-        createdAt: true,
-      },
-    });
+  const user = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: {
+      id: true,
+      email: true,
+      name: true,
+      username: true,
+      role: true,
+      avatarUrl: true,
+      bio: true,
+      website: true,
+      twitter: true,
+      createdAt: true,
+    },
+  });
 
-    if (user) {
-      return user;
-    }
-  } catch {
-    // Fall back to session user so dashboard pages keep rendering during transient DB outages.
-  }
-
-  const sessionUser = session.user as typeof session.user & { username?: string | null };
-
-  return {
-    id: session.user.id,
-    email: session.user.email || "",
-    name: session.user.name || null,
-    username: sessionUser.username || null,
-    role: session.user.role || "USER",
-    avatarUrl: session.user.image || null,
-    bio: null,
-    website: null,
-    twitter: null,
-    createdAt: new Date(),
-  };
+  return user;
 }
 
 /**
