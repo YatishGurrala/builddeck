@@ -14,7 +14,7 @@ describe('Analytics Module', () => {
 
   beforeAll(async () => {
     // Set NODE_ENV to development for logging
-    process.env.NODE_ENV = 'development'
+    (process.env as Record<string, string | undefined>).NODE_ENV = 'development'
     
     // Dynamically import to get fresh module with correct env
     const module = await import('@/lib/analytics')
@@ -24,7 +24,7 @@ describe('Analytics Module', () => {
   })
 
   afterAll(() => {
-    process.env.NODE_ENV = originalEnv
+    (process.env as Record<string, string | undefined>).NODE_ENV = originalEnv
   })
 
   beforeEach(() => {

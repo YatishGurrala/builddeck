@@ -1,20 +1,14 @@
 import Link from "next/link";
-import Image from "next/image";
+import { Rocket } from "lucide-react";
 
 export function Footer() {
   return (
-    <footer className="w-full py-12 bg-[var(--surface-container-lowest)] border-t border-[var(--outline-variant)]">
+    <footer className="w-full border-t border-white/10 bg-[var(--surface-container-lowest)] py-12 transition-colors duration-300">
       <div className="flex flex-col md:flex-row justify-between items-center px-8 md:px-12 max-w-7xl mx-auto gap-8">
         <div className="flex flex-col md:flex-row items-center gap-8">
           <Link href="/" className="flex items-center gap-2">
-            <Image
-              src="/brand/builddeck-system-mark.svg"
-              alt="Builddeck"
-              width={20}
-              height={20}
-              className="h-5 w-5"
-            />
-            <span className="text-[var(--on-surface)] font-bold tracking-normal text-lg font-headline">
+            <Rocket className="h-5 w-5 text-[#0070f3]" />
+            <span className="font-headline text-lg font-bold tracking-normal text-[var(--foreground)]">
               Builddeck
             </span>
           </Link>
@@ -25,20 +19,27 @@ export function Footer() {
             >
               About
             </Link>
-            <Link href="/#waitlist-email" className="hover:text-[#0070F3] transition-colors">
-              Waitlist
-            </Link>
             <Link
-              href="https://x.com/builddeckio"
-              target="_blank"
-              rel="noopener noreferrer"
+              href="/submit"
               className="hover:text-[#0070F3] transition-colors"
             >
-              X
+              Submit
+            </Link>
+            <Link
+              href="/privacy"
+              className="hover:text-[#0070F3] transition-colors"
+            >
+              Privacy
+            </Link>
+            <Link
+              href="/contact"
+              className="hover:text-[#0070F3] transition-colors"
+            >
+              Contact
             </Link>
           </div>
         </div>
-        <div className="text-[var(--on-surface-variant)] text-sm">
+        <div className="text-sm text-[var(--on-surface-variant)]">
           &copy; {new Date().getFullYear()} Builddeck
         </div>
       </div>

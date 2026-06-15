@@ -57,10 +57,11 @@ export function trackEvent<T extends AnalyticsEvent>(event: T): void {
 
   // Production tracking via Vercel Analytics (if available)
   try {
-    // @ts-ignore - Vercel Analytics may add this globally
-    if (typeof window.va === 'function') {
-      // @ts-ignore - Vercel Analytics
-      window.va('event', {
+    const analyticsWindow = window as Window & {
+      va?: (type: string, payload: Record<string, unknown>) => void;
+    };
+    if (typeof analyticsWindow.va === 'function') {
+      analyticsWindow.va('event', {
         name: event.name,
         ...event.properties,
       });
