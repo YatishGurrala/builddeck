@@ -1,6 +1,10 @@
-const FALLBACK_BASE_URL = "http://localhost:3002";
-
 export function getFounderPublicProfileUrl(username: string) {
-  const baseUrl = process.env.NEXT_PUBLIC_FOUNDER_BASE_URL || FALLBACK_BASE_URL;
-  return `${baseUrl.replace(/\/$/, "")}/${username}`;
+  const absoluteUrlsEnabled = process.env.NEXT_PUBLIC_FOUNDER_ABSOLUTE_URLS === "true";
+  const configuredBaseUrl = process.env.NEXT_PUBLIC_FOUNDER_BASE_URL?.trim();
+
+  if (absoluteUrlsEnabled && configuredBaseUrl) {
+    return `${configuredBaseUrl.replace(/\/$/, "")}/${username}`;
+  }
+
+  return `/${username}`;
 }

@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
 const TABS = [
+  { id: "editor", label: "Editor", href: "/dashboard/editor" },
   { id: "profile", label: "Profile", href: "/dashboard/profile" },
   { id: "links", label: "Links", href: "/dashboard/links" },
   { id: "products", label: "Products", href: "/dashboard/products" },
@@ -16,7 +17,7 @@ export type FounderDashboardTab = (typeof TABS)[number]["id"];
 export function FounderDashboardNav({ active }: { active?: FounderDashboardTab }) {
   const pathname = usePathname();
   return (
-    <nav className="flex flex-wrap gap-1 rounded-xl border border-white/5 bg-[#101419] p-1">
+    <nav className="flex flex-wrap gap-1 rounded-xl border border-[color:var(--outline-variant)] bg-[color:var(--surface-container-low)] p-1">
       {TABS.map((tab) => {
         const isActive = active ? active === tab.id : pathname?.startsWith(tab.href);
         return (
@@ -26,8 +27,8 @@ export function FounderDashboardNav({ active }: { active?: FounderDashboardTab }
             className={cn(
               "inline-flex items-center rounded-lg px-3 py-1.5 text-sm font-medium transition-colors",
               isActive
-                ? "bg-white/10 text-white"
-                : "text-zinc-400 hover:bg-white/5 hover:text-white",
+                ? "bg-[color:var(--surface-container-high)] text-[color:var(--on-surface)]"
+                : "text-[color:var(--on-surface-variant)] hover:bg-[color:var(--surface-container)] hover:text-[color:var(--on-surface)]",
             )}
           >
             {tab.label}

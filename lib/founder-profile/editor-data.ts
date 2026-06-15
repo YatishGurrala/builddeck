@@ -53,8 +53,8 @@ const BLOCK_TEMPLATES: CreatorBlockTemplate[] = [
   },
   {
     type: "digital-product",
-    title: "Digital Product",
-    description: "Premium card for ebooks, templates, and mini-courses.",
+    title: "Currently Building",
+    description: "Show your active products in clean rectangular cards.",
     category: "conversion",
   },
   {
@@ -115,11 +115,19 @@ const DEFAULT_PAGE_BLOCKS: CreatorPageBlock[] = [
     isActive: true,
   },
   {
+    id: "blk_current_project",
+    type: "current-project",
+    title: "Current Project",
+    description: "Highlight what you are currently building.",
+    position: 4,
+    isActive: true,
+  },
+  {
     id: "blk_featured",
     type: "featured-content",
     title: "Featured Content",
     description: "One highlighted content piece for discovery.",
-    position: 4,
+    position: 5,
     isActive: false,
   },
 ];

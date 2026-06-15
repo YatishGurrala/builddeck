@@ -95,23 +95,24 @@ function toEmbedUrl(rawUrl?: string) {
   return null;
 }
 
-function CurrentProjectSection({ profile }: { profile: FounderProfile }) {
+function CurrentProjectSection({ profile, showPlaceholder = false }: { profile: FounderProfile; showPlaceholder?: boolean }) {
   const tokens = getFounderTheme(profile.theme);
-  if (!profile.currentlyBuilding) return null;
+  const content = profile.currentlyBuilding?.trim();
+  if (!content && !showPlaceholder) return null;
 
   return (
     <section
       className={cn(
-        "mt-10 flex w-full flex-col gap-3 rounded-3xl border px-5 py-6 sm:px-6",
+        "mt-10 flex w-full flex-col gap-2 rounded-2xl border p-5 sm:p-6",
         tokens.cardClass,
         tokens.borderClass,
       )}
     >
-      <p className={cn("text-[11px] font-semibold uppercase tracking-[0.24em]", tokens.mutedTextClass)}>
-        Current Project
+      <p className={cn("text-xs font-semibold uppercase tracking-[0.2em]", tokens.mutedTextClass)}>
+        Currently Building
       </p>
-      <p className={cn("text-lg font-semibold sm:text-xl", tokens.accentTextClass)}>
-        {profile.currentlyBuilding}
+      <p className={cn("text-base font-semibold leading-relaxed sm:text-lg", tokens.accentTextClass)}>
+        {content || "Add your 'currently building' text in Profile to show this section on your public page."}
       </p>
     </section>
   );
@@ -243,28 +244,36 @@ function TestimonialSection({ profile }: { profile: FounderProfile }) {
   );
 }
 
+const RENDERABLE_BLOCK_TYPES = new Set([
+  "hero",
+  "current-project",
+  "social-links",
+  "resources",
+  "digital-product",
+  "newsletter",
+  "featured-content",
+  "video-embed",
+  "testimonial",
+]);
+
 export function FounderProfileSections({
   profile,
   blocks,
   interactive = true,
 }: FounderProfileSectionsProps) {
   const activeBlocks = (blocks || []).filter((block) => block.isActive);
-  const renderDefaultLayout = activeBlocks.length === 0;
-  const hasExplicitSocialLinksBlock = activeBlocks.some((block) => block.type === "social-links");
+  const hasAnyRenderable = activeBlocks.some((block) =>
+    RENDERABLE_BLOCK_TYPES.has(block.type),
+  );
+  const renderDefaultLayout = activeBlocks.length === 0 || !hasAnyRenderable;
 
   function renderBlock(type: CreatorPageBlock["type"]) {
     if (type === "hero") {
-      return (
-        <FounderHero
-          profile={profile}
-          interactive={interactive}
-          showSocials={!hasExplicitSocialLinksBlock}
-        />
-      );
+      return <FounderHero profile={profile} showSocials={false} />;
     }
 
     if (type === "current-project") {
-      return <CurrentProjectSection profile={profile} />;
+      return <CurrentProjectSection profile={profile} showPlaceholder={!interactive} />;
     }
 
     if (type === "social-links") {
@@ -273,7 +282,6 @@ export function FounderProfileSections({
           socials={profile.socials}
           theme={profile.theme}
           profileId={profile.id}
-          interactive={interactive}
         />
       );
     }
@@ -284,7 +292,6 @@ export function FounderProfileSections({
           links={profile.links}
           theme={profile.theme}
           profileId={profile.id}
-          interactive={interactive}
         />
       );
     }
@@ -295,13 +302,12 @@ export function FounderProfileSections({
           products={profile.products}
           theme={profile.theme}
           profileId={profile.id}
-          interactive={interactive}
         />
       );
     }
 
     if (type === "newsletter") {
-      return <FounderNewsletterCta profile={profile} interactive={interactive} />;
+      return <FounderNewsletterCta profile={profile} />;
     }
 
     if (type === "featured-content") {
@@ -322,21 +328,24 @@ export function FounderProfileSections({
   if (renderDefaultLayout) {
     return (
       <>
-        <FounderHero profile={profile} interactive={interactive} />
-        <CurrentProjectSection profile={profile} />
+        <FounderHero profile={profile} showSocials={false} />
+        <FounderSocialLinks
+          socials={profile.socials}
+          theme={profile.theme}
+          profileId={profile.id}
+        />
+        <CurrentProjectSection profile={profile} showPlaceholder={!interactive} />
         <FounderLinkList
           links={profile.links}
           theme={profile.theme}
           profileId={profile.id}
-          interactive={interactive}
         />
         <FounderProductGrid
           products={profile.products}
           theme={profile.theme}
           profileId={profile.id}
-          interactive={interactive}
         />
-        <FounderNewsletterCta profile={profile} interactive={interactive} />
+        <FounderNewsletterCta profile={profile} />
       </>
     );
   }

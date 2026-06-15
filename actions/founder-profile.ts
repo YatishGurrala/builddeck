@@ -13,9 +13,12 @@ import {
   moveFounderBlockForUser,
   moveFounderLinkForUser,
   moveFounderProductForUser,
+  setFounderBlockActiveForUser,
   setFounderBlockOrderForUser,
+  setFounderCurrentlyBuildingForUser,
   setFounderLinkOrderForUser,
   setFounderPublishedForUser,
+  setFounderSocialsForUser,
   setFounderThemeForUser,
   toggleFounderLinkForUser,
   updateFounderLinkForUser,
@@ -68,6 +71,7 @@ export async function saveFounderProfile(formData: FormData) {
   await updateFounderProfileForUser(user.id, {
     username: (formData.get("username") as string) || user.username || "founder",
     displayName: (formData.get("displayName") as string) || user.name || "Founder",
+    avatarUrl: (formData.get("avatarUrl") as string) || user.avatarUrl || "",
     headline: (formData.get("headline") as string) || "Building in public",
     bio: (formData.get("bio") as string) || "",
     currentlyBuilding: (formData.get("currentlyBuilding") as string) || "",
@@ -163,6 +167,23 @@ export async function addFounderProduct(formData: FormData) {
   await revalidateFounderPaths(user.id);
 }
 
+export async function saveFounderCurrentProject(formData: FormData) {
+  const user = await requireSessionUser();
+  await setFounderCurrentlyBuildingForUser(user.id, (formData.get("currentlyBuilding") as string) || "");
+  await revalidateFounderPaths(user.id);
+}
+
+export async function saveFounderSocialLinks(formData: FormData) {
+  const user = await requireSessionUser();
+  await setFounderSocialsForUser(user.id, [
+    { platform: "LinkedIn", url: (formData.get("linkedin") as string) || "" },
+    { platform: "X", url: (formData.get("x") as string) || "" },
+    { platform: "GitHub", url: (formData.get("github") as string) || "" },
+    { platform: "Website", url: (formData.get("website") as string) || "" },
+  ]);
+  await revalidateFounderPaths(user.id);
+}
+
 export async function saveFounderProduct(formData: FormData) {
   const user = await requireSessionUser();
   const productId = (formData.get("productId") as string) || "";
@@ -218,6 +239,15 @@ export async function moveCreatorBlock(formData: FormData) {
   const direction = (formData.get("direction") as "up" | "down") || "up";
   if (!blockId) return;
   await moveFounderBlockForUser(user.id, blockId, direction);
+  await revalidateFounderPaths(user.id);
+}
+
+export async function toggleCreatorBlockVisibility(formData: FormData) {
+  const user = await requireSessionUser();
+  const blockId = (formData.get("blockId") as string) || "";
+  const nextActive = (formData.get("nextActive") as string) === "true";
+  if (!blockId) return;
+  await setFounderBlockActiveForUser(user.id, blockId, nextActive);
   await revalidateFounderPaths(user.id);
 }
 

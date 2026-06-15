@@ -8,6 +8,7 @@ const protectedRoutes = ["/dashboard", "/submit"];
 const adminRoutes = ["/admin"];
 // Routes only for unauthenticated users
 const authRoutes = ["/login", "/signup"];
+const AUTH_TEMP_DISABLED = process.env.NODE_ENV !== "production";
 // Routes intentionally hidden for the first MVP release
 const mvpLockedRoutes = [
   "/blog",
@@ -18,6 +19,38 @@ const mvpLockedRoutes = [
   "/privacy",
   "/newsletter",
 ];
+
+const APP_TOP_LEVEL_ROUTES = new Set([
+  "",
+  "about",
+  "admin",
+  "api",
+  "auth",
+  "blog",
+  "categories",
+  "contact",
+  "dashboard",
+  "login",
+  "privacy",
+  "products",
+  "signup",
+  "submit",
+]);
+
+function isPotentialFounderPublicPath(pathname: string) {
+  const normalized = pathname.toLowerCase();
+  if (normalized === "/") return false;
+
+  const segments = normalized.replace(/^\/+/, "").split("/").filter(Boolean);
+  if (segments.length !== 1) return false;
+
+  const slug = segments[0];
+  if (slug.includes(".")) return false;
+  if (APP_TOP_LEVEL_ROUTES.has(slug)) return false;
+  if (RESERVED_FOUNDER_USERNAMES.has(slug)) return false;
+
+  return true;
+}
 
 function getHostname(req: NextRequest) {
   return (req.headers.get("host") || "").toLowerCase().split(":")[0];
@@ -62,7 +95,7 @@ export default async function middleware(req: NextRequest) {
   }
 
   // Protect dashboard and submit routes
-  if (!isLoggedIn && protectedRoutes.some((route) => nextUrl.pathname.startsWith(route))) {
+  if (!isLoggedIn && !AUTH_TEMP_DISABLED && protectedRoutes.some((route) => nextUrl.pathname.startsWith(route))) {
     const loginUrl = new URL("/login", nextUrl);
     loginUrl.searchParams.set("redirect", nextUrl.pathname);
     return NextResponse.redirect(loginUrl);
@@ -70,6 +103,9 @@ export default async function middleware(req: NextRequest) {
 
   // Protect admin routes
   if (adminRoutes.some((route) => nextUrl.pathname.startsWith(route))) {
+    if (AUTH_TEMP_DISABLED) {
+      return NextResponse.next();
+    }
     if (!isLoggedIn) {
       return NextResponse.redirect(new URL("/login", nextUrl));
     }
@@ -78,7 +114,16 @@ export default async function middleware(req: NextRequest) {
     }
   }
 
-  return NextResponse.next();
+  const requestHeaders = new Headers(req.headers);
+  if (isPotentialFounderPublicPath(nextUrl.pathname)) {
+    requestHeaders.set("x-builddeck-public-profile", "1");
+  }
+
+  return NextResponse.next({
+    request: {
+      headers: requestHeaders,
+    },
+  });
 }
 
 export const config = {

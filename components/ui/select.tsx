@@ -12,8 +12,8 @@ const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
       <div className="w-full">
         <select
           className={cn(
-            "flex h-10 w-full rounded-lg border border-zinc-700 bg-zinc-800/50 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-offset-2 focus:ring-offset-zinc-900 disabled:cursor-not-allowed disabled:opacity-50",
-            error && "border-red-500 focus:ring-red-500",
+            "flex h-10 w-full rounded-lg border border-[color:var(--outline-variant)] bg-[color:var(--surface-container-low)] px-3 py-2 text-sm text-[color:var(--on-surface)] focus:outline-none focus:ring-2 focus:ring-[#0070f3] disabled:cursor-not-allowed disabled:opacity-50",
+            error && "border-red-500/60 focus:ring-red-500",
             className
           )}
           ref={ref}
@@ -21,7 +21,7 @@ const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
         >
           {children}
         </select>
-        {error && <p className="mt-1 text-sm text-red-500">{error}</p>}
+        {error && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{error}</p>}
       </div>
     );
   }

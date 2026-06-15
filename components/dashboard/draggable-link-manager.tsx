@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { GripVertical, Save, Trash2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { FounderLink } from "@/lib/founder-profile/types";
@@ -52,7 +53,7 @@ export default function DraggableLinkManager({ links }: DraggableLinkManagerProp
   };
 
   if (items.length === 0) {
-    return <p className="text-sm text-zinc-400">No links yet.</p>;
+    return <p className="text-sm text-[color:var(--on-surface-variant)]">No links yet.</p>;
   }
 
   return (
@@ -92,9 +93,9 @@ export default function DraggableLinkManager({ links }: DraggableLinkManagerProp
               commitOrder(nextItems);
             }}
             className={cn(
-              "relative rounded-xl border border-white/5 bg-[#101419] p-3 transition-all duration-200 ease-out",
+              "relative rounded-xl border border-[color:var(--outline-variant)] bg-[color:var(--surface-container-low)] p-3 transition-all duration-200 ease-out",
               isDragging && "scale-[1.01] border-cyan-400/40 shadow-[0_16px_40px_rgba(34,211,238,0.16)] opacity-70",
-              isDropTarget && "border-cyan-400/50 bg-[#0f1c24] shadow-[inset_0_0_0_1px_rgba(34,211,238,0.25)]",
+              isDropTarget && "border-cyan-400/50 bg-[color:var(--surface-container)] shadow-[inset_0_0_0_1px_rgba(34,211,238,0.25)]",
             )}
           >
             {isDropTarget ? <div className="absolute inset-x-3 top-0 h-px bg-cyan-300/70" /> : null}
@@ -151,14 +152,9 @@ export default function DraggableLinkManager({ links }: DraggableLinkManagerProp
             </form>
 
             <div className="mt-2 flex items-center justify-between gap-2">
-              <span
-                className={
-                  "rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide " +
-                  (link.isActive ? "bg-emerald-400/15 text-emerald-300" : "bg-white/10 text-zinc-400")
-                }
-              >
+              <Badge variant={link.isActive ? "active" : "draft"}>
                 {link.isActive ? "Active" : "Hidden"}
-              </span>
+              </Badge>
               <div className="flex items-center gap-2">
                 <form action={toggleFounderLink}>
                   <input type="hidden" name="linkId" value={link.id} />
@@ -177,7 +173,7 @@ export default function DraggableLinkManager({ links }: DraggableLinkManagerProp
           </div>
         );
       })}
-      <p className="pt-1 text-xs text-zinc-500">Drag links by the handle. Lift and guide states show the active card and drop position.</p>
+      <p className="pt-1 text-xs text-[color:var(--on-surface-variant)]">Drag links by the handle. Lift and guide states show the active card and drop position.</p>
     </div>
   );
 }

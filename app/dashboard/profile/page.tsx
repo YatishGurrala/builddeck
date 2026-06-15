@@ -1,10 +1,12 @@
 import Link from "next/link";
 import { ArrowLeft, ExternalLink, Save } from "lucide-react";
 import { redirect } from "next/navigation";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { ProfileAvatarField } from "@/components/dashboard/profile-avatar-field";
 import { getCurrentUser } from "@/lib/auth/utils";
 import { FOUNDER_THEME_LIST } from "@/lib/founder-profile/themes";
 import { getFounderBlocksForUser, getFounderProfileForUser } from "@/lib/founder-profile/store";
@@ -26,23 +28,26 @@ export default async function DashboardProfilePage() {
   return (
     <div className="container mx-auto px-4 py-12">
       <div className="mb-6 flex items-center justify-between">
-        <Link href="/dashboard" className="inline-flex items-center gap-2 text-sm text-zinc-400 hover:text-white">
+        <Link
+          href="/dashboard"
+          className="inline-flex items-center gap-2 text-sm text-[color:var(--on-surface-variant)] hover:text-[color:var(--on-surface)]"
+        >
           <ArrowLeft className="h-4 w-4" /> Back to dashboard
         </Link>
         <Link
           href={founderPublicUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 text-sm text-cyan-300 hover:text-cyan-200"
+          className="inline-flex items-center gap-2 text-sm text-cyan-700 hover:text-cyan-600 dark:text-cyan-300 dark:hover:text-cyan-200"
         >
           View public profile <ExternalLink className="h-3.5 w-3.5" />
         </Link>
       </div>
 
       <header className="mb-8">
-        <h1 className="text-3xl font-bold text-white">Founder Profile</h1>
-        <p className="mt-1 text-zinc-400">
-          Edit your public founder identity. Lives at <code className="text-cyan-300">{founderPublicUrl}</code>.
+        <h1 className="text-3xl font-bold text-[color:var(--on-surface)]">Founder Profile</h1>
+        <p className="mt-1 text-[color:var(--on-surface-variant)]">
+          Edit your public founder identity. Lives at <code className="text-cyan-700 dark:text-cyan-300">{founderPublicUrl}</code>.
         </p>
       </header>
 
@@ -61,20 +66,21 @@ export default async function DashboardProfilePage() {
               <Field label="Display name">
                 <Input name="displayName" defaultValue={profile.displayName} />
               </Field>
+              <ProfileAvatarField initialAvatarUrl={profile.avatarUrl || ""} displayName={profile.displayName} />
               <Field label="Headline">
                 <Input name="headline" defaultValue={profile.headline} />
               </Field>
               <Field label="Bio">
                 <Textarea name="bio" defaultValue={profile.bio ?? ""} rows={4} />
               </Field>
-              <Field label="Currently building">
-                <Input name="currentlyBuilding" defaultValue={profile.currentlyBuilding ?? ""} />
-              </Field>
+              <p className="text-xs text-[color:var(--on-surface-variant)]">
+                Edit your current project from the Products tab.
+              </p>
               {activeBlockTypes.has("featured-content") ? (
                 <>
-                  <div className="border-t border-white/10 pt-4">
-                    <p className="text-sm font-semibold text-white">Featured content</p>
-                    <p className="mt-1 text-xs text-zinc-500">Spotlight one link, post, or offer near the top of your page.</p>
+                  <div className="border-t border-[color:var(--outline-variant)] pt-4">
+                    <p className="text-sm font-semibold text-[color:var(--on-surface)]">Featured content</p>
+                    <p className="mt-1 text-xs text-[color:var(--on-surface-variant)]">Spotlight one link, post, or offer near the top of your page.</p>
                   </div>
                   <Field label="Featured content title">
                     <Input name="featuredContentTitle" defaultValue={profile.featuredContent?.title ?? ""} />
@@ -89,9 +95,9 @@ export default async function DashboardProfilePage() {
               ) : null}
               {activeBlockTypes.has("video-embed") ? (
                 <>
-                  <div className="border-t border-white/10 pt-4">
-                    <p className="text-sm font-semibold text-white">Video embed</p>
-                    <p className="mt-1 text-xs text-zinc-500">Paste a YouTube or Vimeo URL to render an embedded video on the public page.</p>
+                  <div className="border-t border-[color:var(--outline-variant)] pt-4">
+                    <p className="text-sm font-semibold text-[color:var(--on-surface)]">Video embed</p>
+                    <p className="mt-1 text-xs text-[color:var(--on-surface-variant)]">Paste a YouTube or Vimeo URL to render an embedded video on the public page.</p>
                   </div>
                   <Field label="Video title">
                     <Input name="videoEmbedTitle" defaultValue={profile.videoEmbed?.title ?? ""} />
@@ -103,9 +109,9 @@ export default async function DashboardProfilePage() {
               ) : null}
               {activeBlockTypes.has("testimonial") ? (
                 <>
-                  <div className="border-t border-white/10 pt-4">
-                    <p className="text-sm font-semibold text-white">Testimonial</p>
-                    <p className="mt-1 text-xs text-zinc-500">Add one proof point from a client, reader, customer, or peer.</p>
+                  <div className="border-t border-[color:var(--outline-variant)] pt-4">
+                    <p className="text-sm font-semibold text-[color:var(--on-surface)]">Testimonial</p>
+                    <p className="mt-1 text-xs text-[color:var(--on-surface-variant)]">Add one proof point from a client, reader, customer, or peer.</p>
                   </div>
                   <Field label="Quote">
                     <Textarea name="testimonialQuote" defaultValue={profile.testimonial?.quote ?? ""} rows={3} />
@@ -122,9 +128,9 @@ export default async function DashboardProfilePage() {
               ) : null}
               {activeBlockTypes.has("newsletter") ? (
                 <>
-                  <div className="border-t border-white/10 pt-4">
-                    <p className="text-sm font-semibold text-white">Newsletter</p>
-                    <p className="mt-1 text-xs text-zinc-500">These fields only appear while the newsletter block is active.</p>
+                  <div className="border-t border-[color:var(--outline-variant)] pt-4">
+                    <p className="text-sm font-semibold text-[color:var(--on-surface)]">Newsletter</p>
+                    <p className="mt-1 text-xs text-[color:var(--on-surface-variant)]">These fields only appear while the newsletter block is active.</p>
                   </div>
                   <div className="grid gap-4 md:grid-cols-2">
                     <Field label="Newsletter title">
@@ -167,18 +173,16 @@ export default async function DashboardProfilePage() {
                       "w-full rounded-xl border p-4 text-left transition-colors " +
                       (selected
                         ? "border-cyan-400/50 bg-cyan-400/5"
-                        : "border-white/10 bg-[#101419] hover:border-white/30")
+                        : "border-[color:var(--outline-variant)] bg-[color:var(--surface-container-low)] hover:border-[color:var(--outline)]")
                     }
                   >
                     <div className="flex items-center justify-between">
-                      <p className="text-sm font-semibold text-white">{theme.label}</p>
+                      <p className="text-sm font-semibold text-[color:var(--on-surface)]">{theme.label}</p>
                       {selected ? (
-                        <span className="rounded-full bg-cyan-400/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-cyan-300">
-                          Active
-                        </span>
+                        <Badge variant="active">Active</Badge>
                       ) : null}
                     </div>
-                    <p className="mt-1 text-xs text-zinc-400">{theme.description}</p>
+                    <p className="mt-1 text-xs text-[color:var(--on-surface-variant)]">{theme.description}</p>
                   </button>
                 </form>
               );
@@ -193,7 +197,7 @@ export default async function DashboardProfilePage() {
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="block">
-      <span className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-zinc-400">
+      <span className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-[color:var(--on-surface-variant)]">
         {label}
       </span>
       {children}

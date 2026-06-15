@@ -1,14 +1,17 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { slugify } from "@/lib/utils";
-import { getDefaultMockFounderProfile } from "./mock-data";
+import {
+  getDefaultMockFounderProfile,
+  getMockFounderProfileByUsername,
+} from "./mock-data";
 import type {
   FounderAnalyticsEvent,
   FounderAnalyticsEventType,
-  FounderLink,
   FounderProduct,
   FounderProductStatus,
   FounderProfile,
+  FounderSocialLink,
   FounderThemeId,
 } from "./types";
 import {
@@ -40,6 +43,7 @@ interface BasicUser {
 interface UpdateProfileInput {
   username: string;
   displayName: string;
+  avatarUrl?: string;
   headline: string;
   bio?: string;
   currentlyBuilding?: string;
@@ -76,11 +80,119 @@ type MoveDirection = "up" | "down";
 const STORE_DIR = path.join(process.cwd(), ".data");
 const STORE_PATH = path.join(STORE_DIR, "founder-workspaces.json");
 
+function dedupeIds<T extends { id: string }>(items: T[], suffix: string) {
+  const seen = new Map<string, number>();
+  let changed = false;
+
+  const nextItems = items.map((item, index) => {
+    const count = seen.get(item.id) || 0;
+    seen.set(item.id, count + 1);
+
+    if (count === 0) {
+      return item;
+    }
+
+    changed = true;
+    return {
+      ...item,
+      id: `${item.id}__${suffix}_${index + 1}`,
+    };
+  });
+
+  return { items: nextItems, changed };
+}
+
+function normalizeWorkspaceIds(workspace: FounderWorkspaceRecord, userId: string) {
+  const dedupedProducts = dedupeIds(workspace.profile.products, `product_${userId}`);
+  const dedupedLinks = dedupeIds(workspace.profile.links, `link_${userId}`);
+  const dedupedBlocks = dedupeIds(workspace.blocks, `block_${userId}`);
+
+  const changed = dedupedProducts.changed || dedupedLinks.changed || dedupedBlocks.changed;
+  if (!changed) {
+    return { workspace, changed: false };
+  }
+
+  return {
+    changed: true,
+    workspace: {
+      ...workspace,
+      profile: {
+        ...workspace.profile,
+        products: dedupedProducts.items,
+        links: dedupedLinks.items,
+      },
+      blocks: dedupedBlocks.items,
+    },
+  };
+}
+
+function ensureCurrentProjectBlock(workspace: FounderWorkspaceRecord, userId: string) {
+  const desiredIndex = 2;
+  const sortedBlocks = [...workspace.blocks].sort((a, b) => a.position - b.position);
+  const currentProjectIndex = sortedBlocks.findIndex((block) => block.type === "current-project");
+
+  if (currentProjectIndex >= 0) {
+    if (currentProjectIndex === desiredIndex) {
+      return { workspace, changed: false };
+    }
+
+    const nextBlocks = [...sortedBlocks];
+    const [currentProjectBlock] = nextBlocks.splice(currentProjectIndex, 1);
+    nextBlocks.splice(Math.min(desiredIndex, nextBlocks.length), 0, currentProjectBlock);
+
+    return {
+      changed: true,
+      workspace: {
+        ...workspace,
+        blocks: nextBlocks.map((block, index) => ({ ...block, position: index + 1 })),
+      },
+    };
+  }
+
+  const template = getCreatorBlockTemplates().find((block) => block.type === "current-project");
+  if (!template) {
+    return { workspace, changed: false };
+  }
+
+  const nextBlocks = [...sortedBlocks];
+  nextBlocks.splice(Math.min(desiredIndex, nextBlocks.length), 0, {
+    id: `block_${userId}_current_project`,
+    type: template.type,
+    title: template.title,
+    description: template.description,
+    position: 0,
+    isActive: true,
+  });
+
+  return {
+    changed: true,
+    workspace: {
+      ...workspace,
+      blocks: nextBlocks.map((block, index) => ({ ...block, position: index + 1 })),
+    },
+  };
+}
+
 async function readStore(): Promise<FounderStoreFile> {
   try {
     const raw = await readFile(STORE_PATH, "utf8");
     const parsed = JSON.parse(raw) as FounderStoreFile;
-    return parsed.workspaces ? parsed : { workspaces: {} };
+    const store = parsed.workspaces ? parsed : { workspaces: {} };
+
+    let changed = false;
+    for (const [userId, workspace] of Object.entries(store.workspaces)) {
+      const normalized = normalizeWorkspaceIds(workspace, userId);
+      const withCurrentProject = ensureCurrentProjectBlock(normalized.workspace, userId);
+      if (!normalized.changed && !withCurrentProject.changed) continue;
+      store.workspaces[userId] = withCurrentProject.workspace;
+      changed = true;
+    }
+
+    if (changed) {
+      await writeStore(store);
+    }
+
+    return store;
   } catch {
     return { workspaces: {} };
   }
@@ -214,7 +326,7 @@ export async function getFounderProfileByUsername(username: string): Promise<Fou
       return workspace.profile;
     }
   }
-  return null;
+  return getMockFounderProfileByUsername(normalized);
 }
 
 export async function getFounderPublicWorkspaceByUsername(username: string): Promise<{
@@ -232,6 +344,15 @@ export async function getFounderPublicWorkspaceByUsername(username: string): Pro
       };
     }
   }
+
+  const fallbackProfile = getMockFounderProfileByUsername(normalized);
+  if (fallbackProfile) {
+    return {
+      profile: fallbackProfile,
+      blocks: getMockCreatorPageBlocks().sort((a, b) => a.position - b.position),
+    };
+  }
+
   return null;
 }
 
@@ -250,6 +371,7 @@ export async function updateFounderProfileForUser(userId: string, input: UpdateP
       ...workspace.profile,
       username: nextUsername,
       displayName: cleanText(input.displayName, workspace.profile.displayName),
+      avatarUrl: cleanText(input.avatarUrl, workspace.profile.avatarUrl || ""),
       headline: cleanText(input.headline, workspace.profile.headline),
       bio: cleanText(input.bio, workspace.profile.bio || ""),
       currentlyBuilding: cleanText(input.currentlyBuilding, workspace.profile.currentlyBuilding || ""),
@@ -307,6 +429,28 @@ export async function setFounderThemeForUser(userId: string, theme: FounderTheme
     profile: {
       ...workspace.profile,
       theme,
+      updatedAt: new Date(),
+    },
+  }));
+}
+
+export async function setFounderCurrentlyBuildingForUser(userId: string, currentlyBuilding: string) {
+  return updateWorkspace(userId, (workspace) => ({
+    ...workspace,
+    profile: {
+      ...workspace.profile,
+      currentlyBuilding: cleanText(currentlyBuilding, workspace.profile.currentlyBuilding || ""),
+      updatedAt: new Date(),
+    },
+  }));
+}
+
+export async function setFounderSocialsForUser(userId: string, socials: FounderSocialLink[]) {
+  return updateWorkspace(userId, (workspace) => ({
+    ...workspace,
+    profile: {
+      ...workspace.profile,
+      socials: socials.filter((social) => cleanText(social.url).length > 0),
       updatedAt: new Date(),
     },
   }));
@@ -438,25 +582,30 @@ export async function createFounderProductForUser(userId: string, input: UpsertP
 }
 
 export async function updateFounderProductForUser(userId: string, productId: string, input: UpsertProductInput) {
-  return updateWorkspace(userId, (workspace) => ({
-    ...workspace,
-    profile: {
-      ...workspace.profile,
-      products: workspace.profile.products.map((product) =>
-        product.id === productId
-          ? {
-              ...product,
-              name: cleanText(input.name, product.name),
-              description: cleanText(input.description, product.description),
-              url: cleanText(input.url, product.url || ""),
-              imageUrl: cleanText(input.imageUrl, product.imageUrl || ""),
-              status: input.status,
-            }
-          : product,
-      ),
-      updatedAt: new Date(),
-    },
-  }));
+  return updateWorkspace(userId, (workspace) => {
+    const targetIndex = workspace.profile.products.findIndex((product) => product.id === productId);
+    if (targetIndex < 0) return workspace;
+
+    const products = [...workspace.profile.products];
+    const target = products[targetIndex];
+    products[targetIndex] = {
+      ...target,
+      name: cleanText(input.name, target.name),
+      description: cleanText(input.description, target.description),
+      url: cleanText(input.url, target.url || ""),
+      imageUrl: cleanText(input.imageUrl, target.imageUrl || ""),
+      status: input.status,
+    };
+
+    return {
+      ...workspace,
+      profile: {
+        ...workspace.profile,
+        products,
+        updatedAt: new Date(),
+      },
+    };
+  });
 }
 
 export async function deleteFounderProductForUser(userId: string, productId: string) {
@@ -524,6 +673,19 @@ export async function deactivateBlockForUser(userId: string, type: CreatorBlockT
     ...workspace,
     blocks: workspace.blocks.map((block) =>
       block.type === type ? { ...block, isActive: false } : block,
+    ),
+  }));
+}
+
+export async function setFounderBlockActiveForUser(
+  userId: string,
+  blockId: string,
+  isActive: boolean,
+) {
+  return updateWorkspace(userId, (workspace) => ({
+    ...workspace,
+    blocks: workspace.blocks.map((block) =>
+      block.id === blockId ? { ...block, isActive } : block,
     ),
   }));
 }

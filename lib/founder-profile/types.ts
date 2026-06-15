@@ -59,6 +59,20 @@ export interface FounderProfile {
   links: FounderLink[];
   products: FounderProduct[];
   currentlyBuilding?: string;
+  featuredContent?: {
+    title: string;
+    description: string;
+    url: string;
+  };
+  videoEmbed?: {
+    title: string;
+    url: string;
+  };
+  testimonial?: {
+    quote: string;
+    author: string;
+    role?: string;
+  };
   newsletterCta?: {
     headline: string;
     description: string;

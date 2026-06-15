@@ -15,9 +15,9 @@ const STATUS_LABELS: Record<FounderProductStatus, string> = {
 };
 
 const STATUS_STYLES: Record<FounderProductStatus, string> = {
-  building: "bg-[#8B5CF6]/15 text-[#d0bcff] border-[#8B5CF6]/30",
-  launched: "bg-[#22D3EE]/15 text-[#5de6ff] border-[#22D3EE]/30",
-  paused: "bg-white/10 text-white/70 border-white/20",
+  building: "bg-orange-500/12 text-orange-700 dark:text-orange-300 border-orange-500/30",
+  launched: "bg-green-500/12 text-green-700 dark:text-green-300 border-green-500/30",
+  paused: "bg-red-500/12 text-red-700 dark:text-red-300 border-red-500/30",
 };
 
 interface FounderProductCardProps {
@@ -35,15 +35,15 @@ export function FounderProductCard({
   const inner = (
     <div
       className={cn(
-        "group flex h-full flex-col overflow-hidden p-4 transition-colors duration-300 hover:border-white/20",
+        "group flex h-full min-h-[20rem] flex-col overflow-hidden rounded-3xl border p-5 transition-colors duration-300 hover:border-white/20",
         tokens.cardClass,
       )}
     >
       <div
         className={cn(
-          "relative mb-4 aspect-video w-full overflow-hidden rounded-xl",
+          "relative mb-4 aspect-square w-full overflow-hidden rounded-2xl border",
+          tokens.borderClass,
           tokens.cardClass,
-          "border-0",
         )}
       >
         {product.imageUrl ? (
@@ -61,9 +61,9 @@ export function FounderProductCard({
         )}
       </div>
 
-      <div className="flex flex-1 flex-col">
-        <div className="mb-2 flex items-center gap-2">
-          <h3 className={cn("text-base font-semibold", tokens.accentTextClass)}>
+      <div className="flex flex-1 flex-col gap-3">
+        <div className="flex items-start justify-between gap-3">
+          <h3 className={cn("text-base font-semibold leading-tight", tokens.accentTextClass)}>
             {product.name}
           </h3>
           <span
@@ -118,7 +118,7 @@ export function FounderProductGrid({
       <h2 className={cn("mb-4 text-2xl font-semibold sm:text-3xl", tokens.accentTextClass)}>
         Currently Building
       </h2>
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
         {featured.map((product) => (
           <FounderProductCard
             key={product.id}

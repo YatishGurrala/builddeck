@@ -51,13 +51,33 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
 
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-white">Dashboard</h1>
-          <p className="text-zinc-400 mt-1">
-            Welcome back, {user?.name || user?.email}
+          <h1 className="text-3xl font-bold text-[var(--foreground)]">Dashboard</h1>
+          <p className="mt-1 text-[color:var(--on-surface-variant)]">
+            Welcome back, {founderProfile.username || user?.email}
           </p>
-          <div className="mt-3 inline-flex rounded-lg border border-white/10 bg-[#101419] p-1">
-            <Link href="/dashboard?mode=internal" className={"rounded-md px-3 py-1.5 text-sm " + (!isFounderMode ? "bg-white/10 text-white" : "text-zinc-400 hover:text-white")}>Internal</Link>
-            <Link href="/dashboard?mode=founder" className={"rounded-md px-3 py-1.5 text-sm " + (isFounderMode ? "bg-white/10 text-white" : "text-zinc-400 hover:text-white")}>Founder</Link>
+          <div className="mt-3 inline-flex rounded-lg border border-[color:var(--outline-variant)] bg-[color:var(--surface-container-low)] p-1">
+            <Link
+              href="/dashboard?mode=internal"
+              className={
+                "rounded-md px-3 py-1.5 text-sm " +
+                (!isFounderMode
+                  ? "bg-[color:var(--surface-container-high)] text-[color:var(--on-surface)]"
+                  : "text-[color:var(--on-surface-variant)] hover:text-[color:var(--on-surface)]")
+              }
+            >
+              Internal
+            </Link>
+            <Link
+              href="/dashboard?mode=founder"
+              className={
+                "rounded-md px-3 py-1.5 text-sm " +
+                (isFounderMode
+                  ? "bg-[color:var(--surface-container-high)] text-[color:var(--on-surface)]"
+                  : "text-[color:var(--on-surface-variant)] hover:text-[color:var(--on-surface)]")
+              }
+            >
+              Founder
+            </Link>
           </div>
         </div>
         <div className="flex items-center gap-3">
@@ -86,22 +106,22 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-zinc-400">
+                <CardTitle className="text-sm font-medium text-[color:var(--on-surface-variant)]">
                   Total Builds
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-3xl font-bold text-white">{builds?.length || 0}</p>
+                <p className="text-3xl font-bold text-[color:var(--on-surface)]">{builds?.length || 0}</p>
               </CardContent>
             </Card>
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-zinc-400">
+                <CardTitle className="text-sm font-medium text-[color:var(--on-surface-variant)]">
                   Last Generated
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-lg font-semibold text-cyan-300">
+                <p className="text-lg font-semibold text-[color:var(--on-surface)]">
                   {builds[0] ? formatDate(builds[0].createdAt) : "No builds yet"}
                 </p>
               </CardContent>
@@ -116,7 +136,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
             <CardTitle>Founder Profile</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-zinc-400">
+            <p className="text-sm text-[color:var(--on-surface-variant)]">
               Manage your creator studio, block library, public profile, and analytics.
             </p>
             <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
@@ -135,10 +155,10 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
                   href={item.href}
                   target={item.external ? "_blank" : undefined}
                   rel={item.external ? "noopener noreferrer" : undefined}
-                  className="inline-flex items-center justify-between gap-2 rounded-lg border border-white/10 bg-[#101419] px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-white/5"
+                  className="inline-flex items-center justify-between gap-2 rounded-lg border border-[color:var(--outline-variant)] bg-[color:var(--surface-container-low)] px-4 py-3 text-sm font-medium text-[color:var(--on-surface)] transition-colors hover:bg-[color:var(--surface-container)]"
                 >
                   {item.label}
-                  <ArrowRight className="h-4 w-4 text-zinc-400" />
+                  <ArrowRight className="h-4 w-4 text-[color:var(--on-surface-variant)]" />
                 </Link>
               ))}
             </div>
@@ -154,7 +174,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
           <CardContent>
             {!builds || builds.length === 0 ? (
               <div className="text-center py-12">
-                <p className="text-zinc-400 mb-4">
+                <p className="mb-4 text-[color:var(--on-surface-variant)]">
                   You haven&apos;t generated any builds yet.
                 </p>
                 <Link href="/">
@@ -169,11 +189,11 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
                 {builds.map((build) => (
                   <div
                     key={build.id}
-                    className="flex items-center justify-between gap-4 p-4 rounded-lg border border-zinc-800 bg-zinc-900/50"
+                    className="flex items-center justify-between gap-4 rounded-lg border border-[color:var(--outline-variant)] bg-[color:var(--surface-container-low)] p-4"
                   >
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-medium text-white truncate">{build.idea}</h3>
-                      <p className="text-xs text-zinc-500 mt-1">
+                      <h3 className="truncate font-medium text-[color:var(--on-surface)]">{build.idea}</h3>
+                      <p className="mt-1 text-xs text-[color:var(--on-surface-variant)]">
                         Generated {formatDate(build.createdAt)}
                       </p>
                     </div>

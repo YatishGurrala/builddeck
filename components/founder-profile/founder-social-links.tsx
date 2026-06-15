@@ -1,9 +1,10 @@
-import { Github, Linkedin, Twitter, Globe, Link as LinkIcon } from "lucide-react";
+import { Github, Linkedin, Globe, Link as LinkIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { FounderSocialLink } from "@/lib/founder-profile/types";
 import { getFounderTheme } from "@/lib/founder-profile/themes";
 import type { FounderThemeId } from "@/lib/founder-profile/types";
 import { TrackedAnchor } from "./tracked-anchor";
+import { XLogo } from "@/components/icons/x-logo";
 
 interface FounderSocialLinksProps {
   socials: FounderSocialLink[];
@@ -14,7 +15,7 @@ interface FounderSocialLinksProps {
 function iconFor(platform: string) {
   const p = platform.toLowerCase();
   if (p.includes("linkedin")) return Linkedin;
-  if (p === "x" || p.includes("twitter")) return Twitter;
+  if (p === "x" || p.includes("twitter")) return XLogo;
   if (p.includes("github")) return Github;
   if (p.includes("website") || p.includes("site")) return Globe;
   return LinkIcon;

@@ -10,6 +10,7 @@ const THEME_STORAGE_KEY = "builddeck-theme";
 function applyTheme(theme: Theme) {
   const root = document.documentElement;
   root.dataset.theme = theme;
+  root.style.colorScheme = theme;
   if (theme === "dark") {
     root.classList.add("dark");
   } else {
@@ -44,7 +45,7 @@ export function ThemeToggle() {
       size="sm"
       onClick={toggleTheme}
       aria-label={hydrated ? (theme === "dark" ? "Switch to light mode" : "Switch to dark mode") : "Toggle theme"}
-      className="h-9 gap-2 border-white/10 bg-white/5 text-[var(--foreground)] hover:bg-white/10"
+      className="h-9 gap-2 border-[color:var(--outline-variant)] bg-[color:var(--surface-container-low)] text-[color:var(--on-surface)] hover:bg-[color:var(--surface-container)]"
     >
       {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
       <span className="hidden md:inline">{theme === "dark" ? "Light" : "Dark"}</span>

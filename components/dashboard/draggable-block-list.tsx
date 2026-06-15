@@ -1,15 +1,19 @@
 "use client";
 
-import { useRef, useState } from "react";
-import { GripVertical } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import type { CreatorPageBlock } from "@/lib/founder-profile/editor-data";
-import { reorderCreatorBlocks } from "@/actions/founder-profile";
+import { useEffect, useRef, useState } from "react";
+import { Eye, EyeOff, GripVertical } from "lucide-react";
+import { getCreatorBlockTemplates, type CreatorPageBlock } from "@/lib/founder-profile/editor-data";
+import { reorderCreatorBlocks, toggleCreatorBlockVisibility } from "@/actions/founder-profile";
 import { cn } from "@/lib/utils";
+import { useRouter } from "next/navigation";
 
 interface DraggableBlockListProps {
   blocks: CreatorPageBlock[];
 }
+
+const blockTemplateMap = new Map(
+  getCreatorBlockTemplates().map((template) => [template.type, template]),
+);
 
 function reorderBlocks(items: CreatorPageBlock[], draggedId: string, targetId: string) {
   const currentIndex = items.findIndex((item) => item.id === draggedId);
@@ -25,9 +29,11 @@ function reorderBlocks(items: CreatorPageBlock[], draggedId: string, targetId: s
 }
 
 export function DraggableBlockList({ blocks }: DraggableBlockListProps) {
+  const router = useRouter();
   const [items, setItems] = useState(blocks);
   const [draggedId, setDraggedId] = useState<string | null>(null);
   const [dropTargetId, setDropTargetId] = useState<string | null>(null);
+  const [pendingVisibilityBlockId, setPendingVisibilityBlockId] = useState<string | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const dragPreviewRef = useRef<HTMLElement | null>(null);
@@ -45,12 +51,25 @@ export function DraggableBlockList({ blocks }: DraggableBlockListProps) {
     formRef.current.requestSubmit();
   };
 
+  useEffect(() => {
+    setItems(blocks);
+  }, [blocks]);
+
   return (
     <div className="space-y-3">
-      <form ref={formRef} action={reorderCreatorBlocks}>
+      <form
+        ref={formRef}
+        action={async (formData) => {
+          await reorderCreatorBlocks(formData);
+          router.refresh();
+        }}
+      >
         <input ref={inputRef} type="hidden" name="order" />
       </form>
       {items.map((block) => {
+        const template = blockTemplateMap.get(block.type);
+        const displayTitle = template?.title || block.title;
+        const displayDescription = template?.description || block.description;
         const isDragging = draggedId === block.id;
         const isDropTarget = dropTargetId === block.id && draggedId !== block.id;
         return (
@@ -82,16 +101,16 @@ export function DraggableBlockList({ blocks }: DraggableBlockListProps) {
               commitOrder(nextItems);
             }}
             className={cn(
-              "relative flex items-start gap-3 rounded-2xl border border-white/10 bg-[#101419] p-4 transition-all duration-200 ease-out",
+              "relative flex items-start gap-3 rounded-2xl border border-[color:var(--outline-variant)] bg-[color:var(--surface-container-low)] p-4 transition-all duration-200 ease-out",
               isDragging && "scale-[1.02] border-cyan-400/40 shadow-[0_16px_40px_rgba(34,211,238,0.18)] opacity-70",
-              isDropTarget && "border-cyan-400/50 bg-[#0f1c24] shadow-[inset_0_0_0_1px_rgba(34,211,238,0.25)]",
+              isDropTarget && "border-cyan-400/50 bg-[color:var(--surface-container)] shadow-[inset_0_0_0_1px_rgba(34,211,238,0.25)]",
             )}
           >
             {isDropTarget ? <div className="absolute inset-x-4 top-0 h-px bg-cyan-300/70" /> : null}
             <button
               type="button"
               draggable
-              aria-label={`Drag ${block.title}`}
+              aria-label={`Drag ${displayTitle}`}
               onDragStart={(event) => {
                 event.dataTransfer.effectAllowed = "move";
                 const cardElement = event.currentTarget.closest("[data-draggable-card='true']") as HTMLElement | null;
@@ -128,17 +147,58 @@ export function DraggableBlockList({ blocks }: DraggableBlockListProps) {
             </button>
             <div className="min-w-0 flex-1">
               <div className="flex items-center justify-between gap-3">
-                <p className="text-sm font-semibold text-white">{block.title}</p>
-                <Badge className={block.isActive ? "bg-cyan-400/15 text-cyan-300" : "bg-white/10 text-zinc-400"}>
-                  {block.isActive ? "Active" : "Draft"}
-                </Badge>
+                <p className="text-sm font-semibold text-[color:var(--on-surface)]">{displayTitle}</p>
+                <form
+                  action={async (formData) => {
+                    const blockId = (formData.get("blockId") as string) || "";
+                    const nextActive = (formData.get("nextActive") as string) === "true";
+                    if (!blockId) return;
+
+                    setItems((current) =>
+                      current.map((item) => (item.id === blockId ? { ...item, isActive: nextActive } : item)),
+                    );
+                    setPendingVisibilityBlockId(blockId);
+
+                    try {
+                      await toggleCreatorBlockVisibility(formData);
+                      router.refresh();
+                    } catch (error) {
+                      setItems((current) =>
+                        current.map((item) => (item.id === blockId ? { ...item, isActive: !nextActive } : item)),
+                      );
+                      throw error;
+                    } finally {
+                      setPendingVisibilityBlockId((current) => (current === blockId ? null : current));
+                    }
+                  }}
+                >
+                  <input type="hidden" name="blockId" value={block.id} />
+                  <input type="hidden" name="nextActive" value={block.isActive ? "false" : "true"} />
+                  <button
+                    type="submit"
+                    className={cn(
+                      "inline-flex items-center rounded-md border border-[color:var(--outline-variant)] p-1.5 text-[color:var(--on-surface-variant)] transition hover:bg-[color:var(--surface-container)] hover:text-[color:var(--on-surface)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/60",
+                      pendingVisibilityBlockId === block.id && "cursor-wait opacity-70",
+                    )}
+                    disabled={pendingVisibilityBlockId === block.id}
+                    aria-busy={pendingVisibilityBlockId === block.id}
+                    aria-label={block.isActive ? "Hide from live preview" : "Show in live preview"}
+                    title={block.isActive ? "Click to hide in preview and public page" : "Click to show in preview and public page"}
+                  >
+                    {block.isActive ? (
+                      <Eye className="h-4 w-4 text-emerald-600 dark:text-emerald-300" />
+                    ) : (
+                      <EyeOff className="h-4 w-4 text-[color:var(--on-surface-variant)]" />
+                    )}
+                  </button>
+                </form>
               </div>
-              <p className="mt-1 text-xs text-zinc-400">{block.description}</p>
+              <p className="mt-1 text-xs text-[color:var(--on-surface-variant)]">{displayDescription}</p>
             </div>
           </div>
         );
       })}
-      <p className="pt-1 text-xs text-zinc-500">Drag blocks by the handle. The lifted card and cyan guide show where the block will drop.</p>
+      <p className="pt-1 text-xs text-[color:var(--on-surface-variant)]">Drag blocks by the handle. The lifted card and cyan guide show where the block will drop.</p>
     </div>
   );
 }

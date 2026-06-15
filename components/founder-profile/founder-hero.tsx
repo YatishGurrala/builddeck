@@ -6,6 +6,7 @@ import { FounderSocialLinks } from "./founder-social-links";
 
 interface FounderHeroProps {
   profile: FounderProfile;
+  showSocials?: boolean;
 }
 
 function initials(name: string): string {
@@ -14,14 +15,14 @@ function initials(name: string): string {
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 
-export function FounderHero({ profile }: FounderHeroProps) {
+export function FounderHero({ profile, showSocials = true }: FounderHeroProps) {
   const tokens = getFounderTheme(profile.theme);
 
   return (
     <section className="flex w-full flex-col items-center text-center">
       <div
         className={cn(
-          "relative mb-4 h-28 w-28 overflow-hidden rounded-full border-2 shadow-xl sm:h-32 sm:w-32",
+          "relative mb-4 aspect-square w-32 overflow-hidden rounded-2xl border-2 shadow-xl sm:w-36 md:w-40",
           tokens.borderClass,
           tokens.cardClass,
         )}
@@ -32,6 +33,7 @@ export function FounderHero({ profile }: FounderHeroProps) {
             alt={profile.displayName}
             fill
             sizes="128px"
+            unoptimized
             className="object-cover"
           />
         ) : (
@@ -70,11 +72,13 @@ export function FounderHero({ profile }: FounderHeroProps) {
         </p>
       ) : null}
 
-      <FounderSocialLinks
-        socials={profile.socials}
-        theme={profile.theme}
-        profileId={profile.id}
-      />
+      {showSocials ? (
+        <FounderSocialLinks
+          socials={profile.socials}
+          theme={profile.theme}
+          profileId={profile.id}
+        />
+      ) : null}
     </section>
   );
 }
